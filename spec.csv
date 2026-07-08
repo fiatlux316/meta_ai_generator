@@ -1,0 +1,3 @@
+crew_name,task_name,task_description,task_expected_output,task_agent,task_tool,agent_role,agent_goal
+my_auto_crew,research_task,"AI 동향 리서치 및 요약","최신 AI 동향에 대한 심층적인 리서치 결과 요약본","researcher","SerperDevTool","수석 AI 리서처","정확한 AI 기술 동향 파악"
+my_auto_crew,write_task,"리서치 기반 보고서 작성","요구사항에 맞춘 최종 결과물","writer","","테크니컬 라이터","이해하기 쉬운 기술 보고서 작성"

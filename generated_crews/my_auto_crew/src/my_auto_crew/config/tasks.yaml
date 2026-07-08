@@ -1,0 +1,11 @@
+research_task:
+  description: AI 동향 리서치 및 요약
+  expected_output: 최신 AI 동향에 대한 심층적인 리서치 결과 요약본
+  agent: researcher
+  tools:
+  - SerperDevTool
+write_task:
+  description: 리서치 기반 보고서 작성
+  expected_output: 요구사항에 맞춘 최종 결과물
+  agent: writer
+  tools: []
