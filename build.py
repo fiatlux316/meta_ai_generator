@@ -101,7 +101,7 @@ def addon_files(crews_config) :
             
         target_file = target_dir / ".env"
         with open(target_file, 'a', encoding='utf-8') as f:
-            f.write(open('../env.custom').read()). # 본인의 env.xxx 로 대체해서 사용
+            f.write(open('../env.custom').read()) # 본인의 env.xxx 로 대체해서 사용
         print(f"[Copy] '{crew_name}'의 .env 파일 갱신 완료.")    
 
 
