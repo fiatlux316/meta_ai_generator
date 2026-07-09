@@ -92,7 +92,7 @@ def addon_files(crews_config) :
             f.write(open('../devx_llm_wrapper.py').read())
         print(f"[Copy] '{crew_name}'의 devx_llm_wrapper.py 파일 갱신 완료.")    
     
-    # 2. env 파일 복사 (to .env)
+    # 2. custom env 내용을  .env 에 추가
     for crew_name, config in crews_config.items():
         target_dir = Path(crew_name)
         if not target_dir.exists():
@@ -101,7 +101,7 @@ def addon_files(crews_config) :
             
         target_file = target_dir / ".env"
         with open(target_file, 'a', encoding='utf-8') as f:
-            f.write(open('../env').read())
+            f.write(open('../env.custom').read()). # 본인의 env.xxx 로 대체해서 사용
         print(f"[Copy] '{crew_name}'의 .env 파일 갱신 완료.")    
 
 
