@@ -5,25 +5,29 @@
 curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
-# uv init
-```bash
-uv init
-uv venv
-```
-
 # crewai 설치 (기존에 설치되어 있으면 생략)
 ```bash
 uv tool install crewai
 ```
 
-# pyyaml 설치
-```bash
-uv pip install pyyaml
-```
-
 # 설치 확인
 ```bash 
 uv tool list
+```
+
+# python 3.11 설정
+```bash
+#uv venv --python 3.11
+uv init --python 3.11. # .python-version, pyproject.toml 자동생성
+```
+
+# pyyaml 설치
+```bash
+uv add pyyaml
+```
+# 설치 확인
+```bash 
+uv pip list
 ```
 
 # crew ai 생성
@@ -34,12 +38,9 @@ uv run build.py
 # 생성된 crew ai 실행
 ## 기본 패키지 확인
 - 해당 crew 폴더로 이동 (예 : cd generated_crews/my_auto_crew)
-- 파이썬 3.11.0 ~ 3.13.x 버전이 필요한데 가상환경에 설치가 안되어 있으면 설치 
-  - pyproject.toml 에 requires-python = ">=3.11,<3.14"
-  - uv command 가 version 을 확인하지 않기 때문에 직접 설치해야함
 
 ```bash
-uv tool install python@3.13.3
+uv sync  # 해당 폴더에 .venv 자동 생성
 ```
 
 ## 필요한 tool 작성
@@ -72,22 +73,6 @@ def load_csv(input_file: str) -> str:
     @tool
     def load_csv(self):
         return _load_csv
-```
-
-## LLM 설정  (devx api)
-- src/[CREW_NAME]/crew.py
-
-```python
-from devx_llm_wrapper import llm
-
-# agent 에 llm 설정
-@agent
-def researcher(self) -> Agent:
-    return Agent(
-        config=self.agents_config['researcher'], # type: ignore[index]
-        verbose=True,
-        llm=llm # <--- 에 추가
-    )
 ```
 
 ## agentops 설정 (선택)
