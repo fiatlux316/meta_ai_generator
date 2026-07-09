@@ -17,7 +17,6 @@ uv tool list
 
 # python 3.11 설정
 ```bash
-#uv venv --python 3.11
 uv init --python 3.11. # .python-version, pyproject.toml 자동생성
 ```
 
@@ -41,6 +40,8 @@ uv run build.py
 
 ```bash
 uv sync  # 해당 폴더에 .venv 자동 생성
+# 필요시 로컬 가상환경에 패키지 추가
+uv add agentops # 모니터링 AgentOps 사용시
 ```
 
 ## 필요한 tool 작성
@@ -76,7 +77,8 @@ def load_csv(input_file: str) -> str:
 ```
 
 ## agentops 설정 (선택)
-- src/[CREW_NAME]/crew.py 
+- [CREW_NAME]/.env 파일에 AGENTOPS_API_KEY=xxxx 추가
+- src/[CREW_NAME]/crew.py 수정
 
 ```python
 from dotenv import load_dotenv
