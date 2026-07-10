@@ -175,7 +175,7 @@ def addon_files(crew_name, package_name, config):
     else :     
         target_file = target_dir / ".env"
         with open(target_file, 'a', encoding='utf-8') as f:
-            f.write(open('../env.jck').read()) # 본인의 env.xxx 로 대체해서 사용
+            f.write(open('../env.local').read()) # 본인의 env.xxx 로 대체해서 사용
         print(f"[Copy] '{crew_name}'의 .env 파일 갱신 완료.")    
 
 
