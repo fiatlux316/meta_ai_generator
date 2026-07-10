@@ -10,6 +10,6 @@ wheels/
 .venv
 .vscode
 .DS_Store
-generated_crews/*
-!generated_crews/.gitkeep
+#generated_crews/*
+#!generated_crews/.gitkeep
 env.jck
