@@ -20,8 +20,9 @@ uv tool list
 uv init --python 3.11. # .python-version, pyproject.toml 자동생성
 ```
 
-# pyyaml 설치
+# crewai, pyyaml 설치
 ```bash
+uv add "crewai[tools]"
 uv add pyyaml
 ```
 # 설치 확인
@@ -45,7 +46,7 @@ uv add agentops # 모니터링 AgentOps 사용시
 ```
 
 ## 필요한 tool 작성
-- src/[CREW_NAME]/tools/custom_tool.py
+- src/[CREW_NAME]/tools/custom_tool.py 에 필요한 tool 작성
 
 ```python
 from crewai.tools import tool
@@ -64,7 +65,7 @@ def load_csv(input_file: str) -> str:
 ```
 
 ## tool import 설정
-- src/[CREW_NAME]/crew.py
+- src/[CREW_NAME]/crew.py 에 아래 내용 추가
 
 ```python
     from crewai.tools import tool
@@ -78,7 +79,7 @@ def load_csv(input_file: str) -> str:
 
 ## agentops 설정 (선택)
 - [CREW_NAME]/.env 파일에 AGENTOPS_API_KEY=xxxx 추가
-- src/[CREW_NAME]/crew.py 수정
+- src/[CREW_NAME]/crew.py 에 아래 내용 추가
 
 ```python
 from dotenv import load_dotenv
