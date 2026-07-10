@@ -9,7 +9,7 @@ wheels/
 # Virtual environments
 .venv
 .vscode
-generated_crews/**/.venv
-generated_crews/**/.env
-generated_crews/**/.python-version
+.DS_Store
+generated_crews/*
+!generated_crews/.gitkeep
 env.jck
