@@ -8,6 +8,7 @@ wheels/
 
 # Virtual environments
 .venv
+.vscode
 generated_crews/**/.venv
 generated_crews/**/.env
 generated_crews/**/.python-version
