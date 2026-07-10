@@ -174,7 +174,7 @@ def addon_files(crew_name, package_name, config):
         print(f"[Warning] 대상 폴더를 찾을 수 없습니다: {target_dir}")
     else :     
         target_file = target_dir / ".env"
-        with open(target_file, 'a', encoding='utf-8') as f:
+        with open(target_file, 'w', encoding='utf-8') as f:
             f.write(open('../env.local').read()) # 본인의 env.xxx 로 대체해서 사용
         print(f"[Copy] '{crew_name}'의 .env 파일 갱신 완료.")    
 

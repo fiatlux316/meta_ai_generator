@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from pydantic import Field
 from crewai.llms.base_llm import BaseLLM
 from crewai.utilities.types import LLMMessage
+from crewai.llms.providers.bedrock.completion import BedrockCompletion
 
 # .env 파일 로드
 load_dotenv()
@@ -86,4 +87,18 @@ class CompanyLLMWrapper(BaseLLM):
             raise RuntimeError(f"사내 생성형 AI API 호출 오류: {e}")
 
 # 래퍼 생성 (class 내부의 __init__에서 환경변수 로드를 처리하므로 파라미터 전달 불필요)
-llm = CompanyLLMWrapper()
+llm = None 
+if os.getenv("LLM_TYPE") == "company-llm-gateway":
+    print("사내 생성형 AI API 호출 : " + os.getenv("DEVX_MODEL"))
+    llm = CompanyLLMWrapper()
+elif os.getenv("LLM_TYPE") == "aws-bedrock":
+    print("AWS Bedrock 호출 : " + os.getenv("BEDROCK_MODEL"))
+    llm = BedrockCompletion(
+        model=os.getenv("BEDROCK_MODEL"),
+        region_name=os.getenv("BEDROCK_REGION"),
+        aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
+        aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
+        #additional_model_request_fields={"inferenceConfig": {"topK": int(os.getenv("BEDROCK_TOP_K", "1"))}}
+    )
+else:
+    raise ValueError("LLM_TYPE을 설정해주세요.")

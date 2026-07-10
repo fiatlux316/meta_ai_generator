@@ -8,7 +8,7 @@ from .devx_llm_wrapper import llm
 # from my_auto_crew.tools.custom_tool import MyCustomTool
 
 # Check our tools documentations for more information on how to use them
-# from crewai_tools import SerperDevTool /
+# from crewai_tools import SerperDevTool
 
 @CrewBase
 class MyAutoCrew():
