@@ -1,42 +1,42 @@
 # Spec 기반으로 Crew AI 를 만들기 위한 메타 AI Tool
 
-# uv 설치
+## uv 설치
 ```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
-# crewai 설치 (기존에 설치되어 있으면 생략)
+## crewai 설치 (기존에 설치되어 있으면 생략)
 ```bash
 uv tool install crewai
 ```
 
-# 설치 확인
+## 설치 확인
 ```bash 
 uv tool list
 ```
 
-# python 3.11 설정
+## python 버전 설정
 ```bash
 uv init --python 3.11. # .python-version, pyproject.toml 자동생성
 ```
 
-# crewai, pyyaml 설치
+## crewai, pyyaml 패키지 설치
 ```bash
 uv add "crewai[tools]"
 uv add pyyaml
 ```
-# 설치 확인
+## 설치 확인
 ```bash 
 uv pip list
 ```
 
-# crew ai 생성
+## crew ai 프로젝트 생성 (spec.csv 참조해서 자동 생성)
 ```bash
 uv run build.py 
 ```
 
-# 생성된 crew ai 실행
-## 기본 패키지 확인
+## 생성된 crew ai 실행
+### 기본 패키지 확인
 - 해당 crew 폴더로 이동 (예 : cd generated_crews/my_auto_crew)
 
 ```bash
@@ -46,7 +46,7 @@ uv add "crewai[bedrock]"
 uv add agentops # 모니터링 AgentOps 사용시
 ```
 
-## 필요한 tool 작성
+### 필요한 tool 작성 (작성 예)
 - src/[CREW_NAME]/tools/custom_tool.py 에 필요한 tool 작성
 
 ```python
@@ -65,7 +65,7 @@ def load_csv(input_file: str) -> str:
     return df.to_csv(index=False)
 ```
 
-## tool import 설정
+### tool import 설정
 - src/[CREW_NAME]/crew.py 에 아래 내용 추가
 
 ```python
@@ -78,7 +78,7 @@ def load_csv(input_file: str) -> str:
         return _load_csv
 ```
 
-## agentops 설정 (선택)
+### agentops 설정 (모니터링용, 선택)
 - [CREW_NAME]/.env 파일에 AGENTOPS_API_KEY=xxxx 추가
 - src/[CREW_NAME]/crew.py 에 아래 내용 추가
 
@@ -92,7 +92,7 @@ import agentops
 agentops.init(tags=['my_auto_crew'])
 ```
 
-## 실행
+### crew 실행
 ```bash
 uv run run_crew
 ```
