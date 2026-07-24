@@ -1,8 +1,50 @@
+from chromadb.utils.embedding_functions import roboflow_embedding_function
 import os
 import csv
 import subprocess
 import yaml
 from pathlib import Path
+
+import openpyxl
+
+
+def xlsx_to_csv(xlsx_path, csv_path=None, sheet_index=0):
+    """
+    xlsx 파일의 지정된 시트를 csv 파일로 변환합니다.
+    
+    Args:
+        xlsx_path: 입력 xlsx 파일 경로
+        csv_path: 출력 csv 파일 경로 (None이면 확장자만 .csv로 변경)
+        sheet_index: 변환할 시트 인덱스 (기본값: 0 = 첫 번째 시트)
+    
+    Returns:
+        생성된 csv 파일 경로
+    """
+    if csv_path is None:
+        csv_path = os.path.splitext(xlsx_path)[0] + '.csv'
+
+    wb = openpyxl.load_workbook(xlsx_path, read_only=True, data_only=True)
+    sheet_names = wb.sheetnames
+
+    if sheet_index >= len(sheet_names):
+        wb.close()
+        raise IndexError(
+            f"시트 인덱스 {sheet_index}가 범위를 벗어났습니다. "
+            f"사용 가능한 시트: {sheet_names}"
+        )
+
+    ws = wb[sheet_names[sheet_index]]
+    print(f"[Convert] '{xlsx_path}' → '{csv_path}' (시트: '{sheet_names[sheet_index]}')")
+
+    with open(csv_path, 'w', newline='', encoding='utf-8') as f:
+        writer = csv.writer(f)
+        for row in ws.iter_rows(values_only=True):
+            # None 값을 빈 문자열로 치환
+            writer.writerow([cell if cell is not None else '' for cell in row])
+
+    wb.close()
+    print(f"[Success] CSV 변환 완료. ({ws.max_row}행 × {ws.max_column}열)")
+    return csv_path
 
 
 def build_yaml_configs(csv_file_path):
@@ -11,21 +53,42 @@ def build_yaml_configs(csv_file_path):
 
     with open(csv_file_path, mode='r', encoding='utf-8') as file:
         reader = csv.DictReader(file)
+
         for row in reader:
             crew = row['crew_name']
-            
-            if crew not in crews_config:
-                crews_config[crew] = {'agents': {}, 'tasks': {}}
 
+            if crew not in crews_config:
+                crews_config[crew] = {
+                    'agents': {}, 'tasks': {}, 
+                    'standard_tools': set(), # crewai_tools 제공 툴
+                    'custom_tools': set(),   # 자체 제작 툴
+                    'agent_tools': {}
+                }
             agent_key = row['task_agent']
             task_key = row.get('task_name', f"task_{agent_key}") # task_name이 없으면 자동 생성
+
+            # ------------------------------------------------
+            # [수정] Tool 분류: 이름에 'CustomTool'이 포함되었는가?
+            # ------------------------------------------------
+            raw_tools = row.get('agent_tool', '')
+            tool_list = [t.strip() for t in raw_tools.split(',') if t.strip()]
+
+            if agent_key not in crews_config[crew]['agent_tools']:
+                crews_config[crew]['agent_tools'][agent_key] = set()
+
+            for tool in tool_list:
+                crews_config[crew]['agent_tools'][agent_key].add(tool)
+                if "CustomTool" in tool: # 예: CsvCustomTool
+                    crews_config[crew]['custom_tools'].add(tool)
+                else:
+                    crews_config[crew]['standard_tools'].add(tool)
 
             # Agents 설정 구성
             if agent_key not in crews_config[crew]['agents']:
                 crews_config[crew]['agents'][agent_key] = {
                     'role': row['agent_role'],
                     'goal': row['agent_goal'],
-                    'backstory': f"{row['agent_role']}로서, {row['agent_goal']} 달성을 위해 최선을 다합니다."
+                    'backstory': row['agent_backstory']
                 }
 
             # Tasks 설정 구성
@@ -33,7 +96,7 @@ def build_yaml_configs(csv_file_path):
                 'description': row['task_description'],
                 'expected_output': row['task_expected_output'],
                 'agent': agent_key,
-                'tools': [row['task_tool']] if row['task_tool'] else []
+                'context': row['task_context']
             }
             
     return crews_config
@@ -53,6 +116,46 @@ def run_scaffolding(crew_name):
         print(f"[Error] CLI 실행 중 오류 발생: {e}")
 
 
+def generate_custom_tools_file(crew_name, package_name, custom_tools):
+    """분류된 Custom Tool들을 위한 Pseudo 코드를 custom_tool.py에 생성합니다."""
+    if not custom_tools:
+        return # 커스텀 툴이 없으면 스킵
+
+    # CrewAI 스캐폴딩의 기본 도구 폴더 경로
+    tool_file = Path(crew_name) / "src" / package_name / "tools" / "custom_tool.py"
+    tool_file.parent.mkdir(parents=True, exist_ok=True) # tools 폴더가 없으면 생성
+
+    # BaseTool 상속 및 Pydantic 스키마 템플릿
+    content = """from crewai.tools import BaseTool
+from typing import Type
+from pydantic import BaseModel, Field
+
+"""
+    # 정의된 커스텀 툴 갯수만큼 클래스 생성
+    for tool_name in custom_tools:
+        content += f"""class {tool_name}Input(BaseModel):
+    \"\"\"Input schema for {tool_name}.\"\"\"
+    query: str = Field(..., description="CSV 검색 또는 처리를 위한 매개변수")
+
+class {tool_name}(BaseTool):
+    name: str = "{tool_name}"
+    description: str = "{tool_name}은(는) 지정된 데이터를 처리하는 사용자 정의 도구입니다. 데이터 파싱이 필요할 때 사용하세요."
+    args_schema: Type[BaseModel] = {tool_name}Input
+
+    def _run(self, query: str) -> str:
+        # [TODO: Pseudo-code] 실제 비즈니스 로직을 여기에 구현하세요.
+        # 예: import pandas as pd
+        # df = pd.read_csv('data.csv')
+        # return df[df['target'] == query].to_string()
+        
+        return f"[{tool_name}] 성공적으로 실행되었습니다. (입력값: {{query}})"
+
+"""
+    with open(tool_file, 'w', encoding='utf-8') as f:
+        f.write(content)
+    print(f"[Create] '{tool_file}' 에 커스텀 툴 Pseudo 코드 생성 완료.")
+
+
 def update_crew_py_file(crew_name, package_name, config):
     """
     YAML 설정의 Key(agent_name, task_name)를 읽어와서
@@ -63,19 +166,37 @@ def update_crew_py_file(crew_name, package_name, config):
     # 1. 클래스명 생성 (snake_case -> CamelCase 변환)
     # 예: my_auto_crew -> MyAutoCrew
     class_name = "".join([word.capitalize() for word in crew_name.replace('-', '_').split("_")])
-    
+
+    # ------------------------------------------------
+    # [수정] Import 구문 분리 (Standard vs Custom)
+    # ------------------------------------------------
+    imports_code = ""
+    if config.get('standard_tools'):
+        tools_str = ", ".join(config['standard_tools'])
+        imports_code += f"from crewai_tools import {tools_str}\n"
+        
+    if config.get('custom_tools'):
+        custom_tools_str = ", ".join(config['custom_tools'])
+        imports_code += f"from {package_name}.tools.custom_tool import {custom_tools_str}\n"
+
     # 2. Agent 메서드 코드 동적 생성
     agents_code = ""
     for agent_key in config['agents'].keys():
+        assigned_tools = config['agent_tools'].get(agent_key, set())
+        tools_inject_str = ""
+        if assigned_tools:
+            tools_list_str = ", ".join([f"{t}()" for t in assigned_tools])
+            tools_inject_str = f"            tools=[{tools_list_str}],\n"
+
         agents_code += f"""
     @agent
     def {agent_key}(self) -> Agent:
         return Agent(
             config=self.agents_config['{agent_key}'],
-            verbose=True,
+{tools_inject_str}            verbose=True,
             llm=llm
         )
-"""
+    """
 
     # 3. Task 메서드 코드 동적 생성
     tasks_code = ""
@@ -92,15 +213,9 @@ def update_crew_py_file(crew_name, package_name, config):
     # 주의: 파이썬 코드의 들여쓰기(Indentation)가 정확해야 하므로 f-string의 공백 유지
     crew_py_content = f"""from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
-
+{imports_code}
 # devx api 호출
 from .devx_llm_wrapper import llm
-
-# Uncomment the following line to use an example of a custom tool
-# from {package_name}.tools.custom_tool import MyCustomTool
-
-# Check our tools documentations for more information on how to use them
-# from crewai_tools import SerperDevTool
 
 @CrewBase
 class {class_name}():
@@ -180,13 +295,16 @@ def addon_files(crew_name, package_name, config):
 
 
 def main():
-    csv_path = 'spec.csv'
+    xlsx_path = 'spec.xlsx'
     
-    if not os.path.exists(csv_path):
-        print(f"[{csv_path}] 파일을 찾을 수 없습니다.")
+    if not os.path.exists(xlsx_path):
+        print(f"[{xlsx_path}] 파일을 찾을 수 없습니다.")
         return
 
-    # 1. CSV 파싱하여 설정 데이터 추출
+    # 1. XLSX를 CSV로 변환
+    csv_path = xlsx_to_csv(xlsx_path)
+
+    # 2. CSV 파싱하여 설정 데이터 추출
     crews_config = build_yaml_configs(csv_path)
 
     # 하위에 generated_crews 폴더를 만들고 그 하위에서 아래 작업을 한다.
@@ -194,20 +312,23 @@ def main():
         os.makedirs("generated_crews")
     os.chdir("generated_crews") 
 
-    # 2. 파싱된 데이터를 바탕으로 각각의 Crew 스캐폴딩 및 파일 업데이트
+    # 3. 파싱된 데이터를 바탕으로 각각의 Crew 스캐폴딩 및 파일 업데이트
     for crew_name in crews_config.keys():
         package_name = crew_name.replace('-', '_')
 
         # 1. CrewAI CLI를 사용하여 기본 프로젝트 스캐폴딩을 생성
         run_scaffolding(crew_name)
 
-        # 2. crew.py 동적 생성 및 덮어쓰기
+        # 2. Custom Tool 코드 먼저 생성
+        generate_custom_tools_file(crew_name, package_name, crews_config[crew_name]['custom_tools'])
+
+        # 3. crew.py 동적 생성 및 덮어쓰기
         update_crew_py_file(crew_name, package_name, crews_config[crew_name])
 
-        # 3. 생성된 폴더 내 YAML 파일 덮어쓰기
+        # 4. 생성된 폴더 내 YAML 파일 덮어쓰기
         update_config_files(crew_name, package_name, crews_config[crew_name])    
         
-        # 4. 후속 작업
+        # 5. 후속 작업
         addon_files(crew_name, package_name, crews_config[crew_name])
 
     print("\n✅ 모든 자동화 애플리케이션 생성 프로세스가 완료되었습니다.")

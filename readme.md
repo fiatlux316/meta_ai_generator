@@ -1,4 +1,4 @@
-# Spec 기반으로 Crew AI 를 만들기 위한 메타 AI Tool
+# Spec 기반으로 Crew AI 프로젝트를 자동으로 생성하기 위한 메타 AI Tool
 
 ## uv 설치
 ```bash
