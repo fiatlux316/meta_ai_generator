@@ -8,6 +8,21 @@ from pathlib import Path
 import openpyxl
 
 
+# 멀티라인 문자열을 리터럴 블록 스칼라(|) 스타일로 출력하는 커스텀 Dumper
+class LiteralDumper(yaml.Dumper):
+    pass
+
+def _str_representer(dumper, data):
+    """개행(\n)이 포함된 문자열은 | 블록 스타일로 출력합니다."""
+    if '\n' in data:
+        # 후행 공백/개행 정리
+        data = data.rstrip()
+        return dumper.represent_scalar('tag:yaml.org,2002:str', data, style='|')
+    return dumper.represent_scalar('tag:yaml.org,2002:str', data)
+
+LiteralDumper.add_representer(str, _str_representer)
+
+
 def xlsx_to_csv(xlsx_path, csv_path=None, sheet_index=0):
     """
     xlsx 파일의 지정된 시트를 csv 파일로 변환합니다.
@@ -263,16 +278,16 @@ def update_config_files(crew_name, package_name, config):
 
     # 1. agents.yaml 업데이트
     with open(agents_file, 'w', encoding='utf-8') as f:
-        yaml.dump(config['agents'], f, allow_unicode=True, sort_keys=False)
+        yaml.dump(config['agents'], f, Dumper=LiteralDumper, allow_unicode=True, sort_keys=False)
         
     # 2. tasks.yaml 업데이트
     with open(tasks_file, 'w', encoding='utf-8') as f:
-        yaml.dump(config['tasks'], f, allow_unicode=True, sort_keys=False)
+        yaml.dump(config['tasks'], f, Dumper=LiteralDumper, allow_unicode=True, sort_keys=False)
         
     print(f"[Update] '{crew_name}'의 agents.yaml 및 tasks.yaml 파일 갱신 완료.")
 
 
-def addon_files(crew_name, package_name, config):
+def add_necessary_files(crew_name, package_name, config):
     """생성된 스캐폴딩에 후속 파일을 추가합니다."""
     
     # 1. devx_llm_wrapper.py 복사 (to src/[CREW_NAME]/)
@@ -331,7 +346,7 @@ def main():
         update_config_files(crew_name, package_name, crews_config[crew_name])    
         
         # 5. 후속 작업
-        addon_files(crew_name, package_name, crews_config[crew_name])
+        add_necessary_files(crew_name, package_name, crews_config[crew_name])
 
     print("\n✅ 모든 자동화 애플리케이션 생성 프로세스가 완료되었습니다.")
 
