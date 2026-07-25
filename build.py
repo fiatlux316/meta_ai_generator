@@ -60,35 +60,34 @@ def build_yaml_configs(csv_file_path):
             if crew not in crews_config:
                 crews_config[crew] = {
                     'agents': {}, 'tasks': {}, 
-                    'standard_tools': set(), # crewai_tools 제공 툴
+                    'crewai_tools': set(), # crewai_tools 제공 툴
                     'custom_tools': set(),   # 자체 제작 툴
                     'agent_tools': {}
                 }
             agent_key = row['task_agent']
             task_key = row.get('task_name', f"task_{agent_key}") # task_name이 없으면 자동 생성
-
-            # ------------------------------------------------
-            # [수정] Tool 분류: 이름에 'CustomTool'이 포함되었는가?
-            # ------------------------------------------------
-            raw_tools = row.get('agent_tool', '')
-            tool_list = [t.strip() for t in raw_tools.split(',') if t.strip()]
+            custom_tool = row.get('custom_tool', '')
+            crewai_tool = row.get('crewai_tool', '')
 
             if agent_key not in crews_config[crew]['agent_tools']:
                 crews_config[crew]['agent_tools'][agent_key] = set()
 
-            for tool in tool_list:
-                crews_config[crew]['agent_tools'][agent_key].add(tool)
-                if "CustomTool" in tool: # 예: CsvCustomTool
+            for tool in custom_tool.split(','):
+                if tool != '' :
+                    crews_config[crew]['agent_tools'][agent_key].add(tool)
                     crews_config[crew]['custom_tools'].add(tool)
-                else:
-                    crews_config[crew]['standard_tools'].add(tool)
+
+            for tool in crewai_tool.split(','):
+                if tool != '' :
+                    crews_config[crew]['agent_tools'][agent_key].add(tool)
+                    crews_config[crew]['crewai_tools'].add(tool)
 
             # Agents 설정 구성
             if agent_key not in crews_config[crew]['agents']:
                 crews_config[crew]['agents'][agent_key] = {
-                    'role': row['agent_role'],
-                    'goal': row['agent_goal'],
-                    'backstory': row['agent_backstory']
+                    'role': row['persona_role'],
+                    'goal': row['persona_goal'],
+                    'backstory': row['persona_backstory']
                 }
 
             # Tasks 설정 구성
@@ -135,11 +134,11 @@ from pydantic import BaseModel, Field
     for tool_name in custom_tools:
         content += f"""class {tool_name}Input(BaseModel):
     \"\"\"Input schema for {tool_name}.\"\"\"
-    query: str = Field(..., description="CSV 검색 또는 처리를 위한 매개변수")
+    query: str = Field(..., description="해당 파라미터의 설명을 자세하게 입력하세요.")
 
 class {tool_name}(BaseTool):
     name: str = "{tool_name}"
-    description: str = "{tool_name}은(는) 지정된 데이터를 처리하는 사용자 정의 도구입니다. 데이터 파싱이 필요할 때 사용하세요."
+    description: str = "{tool_name}에 대한 설명을 자세하게 입력하세요."
     args_schema: Type[BaseModel] = {tool_name}Input
 
     def _run(self, query: str) -> str:
@@ -171,10 +170,13 @@ def update_crew_py_file(crew_name, package_name, config):
     # [수정] Import 구문 분리 (Standard vs Custom)
     # ------------------------------------------------
     imports_code = ""
-    if config.get('standard_tools'):
-        tools_str = ", ".join(config['standard_tools'])
+
+    #print('config.get("crewai_tools") : ', config.get('crewai_tools'))
+    if config.get('crewai_tools'):
+        tools_str = ", ".join(config['crewai_tools'])
         imports_code += f"from crewai_tools import {tools_str}\n"
         
+    #print('config.get("custom_tools") : ', config.get('custom_tools'))
     if config.get('custom_tools'):
         custom_tools_str = ", ".join(config['custom_tools'])
         imports_code += f"from {package_name}.tools.custom_tool import {custom_tools_str}\n"

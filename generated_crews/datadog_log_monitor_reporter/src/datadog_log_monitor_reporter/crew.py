@@ -1,6 +1,7 @@
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
-from datadog_log_monitor_reporter.tools.custom_tool import DatadogLogsSearchCustomTool
+from crewai_tools import WebsiteSearchTool
+from datadog_log_monitor_reporter.tools.custom_tool import DatadogLogsSearch
 
 # devx api 호출
 from .devx_llm_wrapper import llm
@@ -16,7 +17,7 @@ class DatadogLogMonitorReporter():
     def datadog_log_retrieval_specialist(self) -> Agent:
         return Agent(
             config=self.agents_config['datadog_log_retrieval_specialist'],
-            tools=[DatadogLogsSearchCustomTool()],
+            tools=[DatadogLogsSearch(), WebsiteSearchTool()],
             verbose=True,
             llm=llm
         )
