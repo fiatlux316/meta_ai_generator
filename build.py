@@ -15,7 +15,9 @@ class LiteralDumper(yaml.Dumper):
 def _str_representer(dumper, data):
     """개행(\n)이 포함된 문자열은 | 블록 스타일로 출력합니다."""
     if '\n' in data:
-        # 후행 공백/개행 정리
+        # 각 줄의 후행 공백을 제거 (PyYAML은 줄 끝 공백이 있으면 | 스타일 거부)
+        lines = data.split('\n')
+        data = '\n'.join(line.rstrip() for line in lines)
         data = data.rstrip()
         return dumper.represent_scalar('tag:yaml.org,2002:str', data, style='|')
     return dumper.represent_scalar('tag:yaml.org,2002:str', data)
@@ -211,6 +213,14 @@ def update_crew_py_file(crew_name, package_name, config):
         return Agent(
             config=self.agents_config['{agent_key}'],
 {tools_inject_str}            verbose=True,
+            reasoning=False,
+            max_reasoning_attempts=None,
+            inject_date=True,
+            allow_delegation=False,
+            max_iter=20,
+            max_rpm=None,
+            max_execution_time=None,
+            memory=True,
             llm=llm
         )
     """
@@ -223,6 +233,7 @@ def update_crew_py_file(crew_name, package_name, config):
     def {task_key}(self) -> Task:
         return Task(
             config=self.tasks_config['{task_key}'],
+            markdown=False
         )
 """
 

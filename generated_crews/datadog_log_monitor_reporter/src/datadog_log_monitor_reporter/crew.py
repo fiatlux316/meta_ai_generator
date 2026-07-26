@@ -17,8 +17,16 @@ class DatadogLogMonitorReporter():
     def datadog_log_retrieval_specialist(self) -> Agent:
         return Agent(
             config=self.agents_config['datadog_log_retrieval_specialist'],
-            tools=[DatadogLogsSearch(), WebsiteSearchTool()],
+            tools=[WebsiteSearchTool(), DatadogLogsSearch()],
             verbose=True,
+            reasoning=False,
+            max_reasoning_attempts=None,
+            inject_date=True,
+            allow_delegation=False,
+            max_iter=20,
+            max_rpm=None,
+            max_execution_time=None,
+            memory=True,
             llm=llm
         )
     
@@ -27,6 +35,14 @@ class DatadogLogMonitorReporter():
         return Agent(
             config=self.agents_config['application_error_analysis_expert'],
             verbose=True,
+            reasoning=False,
+            max_reasoning_attempts=None,
+            inject_date=True,
+            allow_delegation=False,
+            max_iter=20,
+            max_rpm=None,
+            max_execution_time=None,
+            memory=True,
             llm=llm
         )
     
@@ -35,6 +51,14 @@ class DatadogLogMonitorReporter():
         return Agent(
             config=self.agents_config['technical_report_writer'],
             verbose=True,
+            reasoning=False,
+            max_reasoning_attempts=None,
+            inject_date=True,
+            allow_delegation=False,
+            max_iter=20,
+            max_rpm=None,
+            max_execution_time=None,
+            memory=True,
             llm=llm
         )
     
@@ -43,6 +67,14 @@ class DatadogLogMonitorReporter():
         return Agent(
             config=self.agents_config['notification_dispatcher'],
             verbose=True,
+            reasoning=False,
+            max_reasoning_attempts=None,
+            inject_date=True,
+            allow_delegation=False,
+            max_iter=20,
+            max_rpm=None,
+            max_execution_time=None,
+            memory=True,
             llm=llm
         )
     
@@ -50,24 +82,28 @@ class DatadogLogMonitorReporter():
     def fetch_datadog_logs(self) -> Task:
         return Task(
             config=self.tasks_config['fetch_datadog_logs'],
+            markdown=False
         )
 
     @task
     def analyze_application_logs(self) -> Task:
         return Task(
             config=self.tasks_config['analyze_application_logs'],
+            markdown=False
         )
 
     @task
     def generate_log_report(self) -> Task:
         return Task(
             config=self.tasks_config['generate_log_report'],
+            markdown=False
         )
 
     @task
     def send_report_via_email(self) -> Task:
         return Task(
             config=self.tasks_config['send_report_via_email'],
+            markdown=False
         )
 
     @crew
