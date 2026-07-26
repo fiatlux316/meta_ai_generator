@@ -46,36 +46,54 @@ uv add "crewai[bedrock]"
 uv add agentops # 모니터링 AgentOps 사용시
 ```
 
-### 필요한 tool 작성 (작성 예)
-- src/[CREW_NAME]/tools/custom_tool.py 에 필요한 tool 작성
+### 필요한 Custom Tool 작성 (작성 예)
+- src/[CREW_NAME]/tools/custom_tool.py 에  tool 의 실제 로직 작성
 
 ```python
-from crewai.tools import tool
+class DatadogLogsSearchInput(BaseModel):
+    """Input schema for DatadogLogsSearch."""
+    limit: str = Field(..., description="limit에 대한 설명을 자세하게 입력하세요.")
+    recipient_email: str = Field(..., description="recipient_email에 대한 설명을 자세하게 입력하세요.")
+    time_range: str = Field(..., description="time_range에 대한 설명을 자세하게 입력하세요.")
+    datadog_query: str = Field(..., description="datadog_query에 대한 설명을 자세하게 입력하세요.")
+    
+class DatadogLogsSearch(BaseTool):
+    name: str = "DatadogLogsSearch"
+    description: str = "DatadogLogsSearch에 대한 설명을 자세하게 입력하세요."
+    args_schema: Type[BaseModel] = DatadogLogsSearchInput
 
-@tool
-def load_csv(input_file: str) -> str:    
-    """CSV 파일을 로드하여 데이터프레임을 csv 형태로 반환합니다."""
-    import pandas as pd
-    print(f"\n\n\n\n\n{input_file}\n\n\n\n\n")
-    df = pd.read_csv(input_file)
-    print("\n\n")
-    print("CSV 파일 로드 완료")
-    print(df.head())
-    print(f"\n\n")
-    return df.to_csv(index=False)
+    def _run(self, limit:str, recipient_email:str, time_range:str, datadog_query:str) -> str:
+        # [TODO: Pseudo-code] 실제 비즈니스 로직을 여기에 구현하세요.
+        # 예: import pandas as pd
+        # df = pd.read_csv('data.csv')
+        # return df[df['target'] == query].to_string()
+        
+        return f"[DatadogLogsSearch] 성공적으로 실행되었습니다."
 ```
 
-### tool import 설정
-- src/[CREW_NAME]/crew.py 에 아래 내용 추가
+### Tool import 확인
+- src/[CREW_NAME]/crew.py 에 해당 Tool 추가되었는지 확인
 
 ```python
-    from crewai.tools import tool
-    from my_auto_crew.tools.custom_tool import load_csv as _load_csv
-    
+from datadog_log_monitor_reporter.tools.custom_tool import DatadogLogsSearch
+....
+
     # ── Tool 등록 (YAML에서 이름으로 참조됨) ──
-    @tool
-    def load_csv(self):
-        return _load_csv
+    @agent
+    def datadog_log_retrieval_specialist(self) -> Agent:
+        return Agent(
+            config=self.agents_config['datadog_log_retrieval_specialist'],
+            tools=[DatadogLogsSearch()],
+            verbose=True,
+            reasoning=False,
+            max_reasoning_attempts=None,
+            inject_date=True,
+            allow_delegation=False,
+            max_iter=20,
+            max_rpm=None,
+            max_execution_time=None,
+            llm=llm
+        )
 ```
 
 ### agentops 설정 (모니터링용, 선택)
