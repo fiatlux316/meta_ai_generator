@@ -112,9 +112,13 @@ def build_yaml_configs(csv_file_path):
                 'description': row['task_description'],
                 'expected_output': row['task_expected_output'],
                 'agent': agent_key,
-                'context': row['task_context']
+                #'context': row['task_context']
             }
-            
+            if row['task_context'] != '':
+                # 쉼표로 구분된 복수 context 지원, YAML 리스트로 저장
+                context_list = [c.strip() for c in row['task_context'].split(',') if c.strip()]
+                crews_config[crew]['tasks'][task_key]['context'] = context_list
+
     return crews_config
 
 
@@ -155,14 +159,14 @@ def generate_custom_tools_file(crew_name, package_name, config):
     input_vars_code1 = ''
     for var in input_vars:
         input_vars_code1 += f'{var}: str = Field(..., description="{var}에 대한 설명을 자세하게 입력하세요.")\n    '
-    print(input_vars_code1)
+    #print(input_vars_code1)
     
     input_vars_code2 = ''
     for var in input_vars:
         input_vars_code2 += f'{var}:str, '
     # 마지막 , 을 제거
     input_vars_code2 = input_vars_code2.rstrip(', ')
-    print(input_vars_code2)
+    #print(input_vars_code2)
 
     # BaseTool 상속 및 Pydantic 스키마 템플릿
     content = """from crewai.tools import BaseTool
@@ -243,7 +247,6 @@ def update_crew_py_file(crew_name, package_name, config):
             max_iter=20,
             max_rpm=None,
             max_execution_time=None,
-            memory=True,
             llm=llm
         )
     """

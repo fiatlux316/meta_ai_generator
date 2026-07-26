@@ -1,7 +1,6 @@
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
-from crewai_tools import WebsiteSearchTool
-from datadog_log_monitor_reporter.tools.custom_tool import DatadogLogsSearch
+from datadog_log_monitor_reporter.tools.custom_tool import DatadogLogsSearch, DatadogAPMTracesSearch
 
 # devx api 호출
 from .devx_llm_wrapper import llm
@@ -17,7 +16,8 @@ class DatadogLogMonitorReporter():
     def datadog_log_retrieval_specialist(self) -> Agent:
         return Agent(
             config=self.agents_config['datadog_log_retrieval_specialist'],
-            tools=[DatadogLogsSearch(), WebsiteSearchTool()],
+            tools=[DatadogAPMTracesSearch()],
+            #tools=[DatadogLogsSearch()],
             verbose=True,
             reasoning=False,
             max_reasoning_attempts=None,
@@ -26,7 +26,6 @@ class DatadogLogMonitorReporter():
             max_iter=20,
             max_rpm=None,
             max_execution_time=None,
-            memory=True,
             llm=llm
         )
     
@@ -42,7 +41,6 @@ class DatadogLogMonitorReporter():
             max_iter=20,
             max_rpm=None,
             max_execution_time=None,
-            memory=True,
             llm=llm
         )
     
@@ -58,7 +56,6 @@ class DatadogLogMonitorReporter():
             max_iter=20,
             max_rpm=None,
             max_execution_time=None,
-            memory=True,
             llm=llm
         )
     
@@ -74,7 +71,6 @@ class DatadogLogMonitorReporter():
             max_iter=20,
             max_rpm=None,
             max_execution_time=None,
-            memory=True,
             llm=llm
         )
     

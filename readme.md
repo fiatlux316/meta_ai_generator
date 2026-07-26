@@ -7,7 +7,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 
 ## crewai 설치 (기존에 설치되어 있으면 생략)
 ```bash
-uv tool install crewai
+uv tool install crewai==1.14.7
 ```
 
 ## 설치 확인

@@ -1,17 +1,13 @@
 fetch_datadog_logs:
   description: |-
-    Datadog Logs API를 사용하여 {time_range} 시간 범위 동안 {datadog_query} 쿼리와 일치하는 애플리케이션 로그를 가져옵니다.
-        최대 {limit}개의 로그 이벤트를 가져옵니다. 반환된 데이터에 타임스탬프, 로그 레벨, 메시지, 서비스 이름 및 스택 트레이스가 포함되도록 합니다.
-        Datadog 로그 검색 엔드포인트에 대한 API 요청을 구성합니다:
+    Datadog Logs API를 사용하여 {time_range} 시간 범위 동안 {datadog_query} 쿼리와 일치하는 애플리케이션 로그를 가져옵니다. 최대 {limit}개의 로그 이벤트를 가져옵니다. 반환된 데이터에 타임스탬프, 로그 레벨, 메시지, 서비스 이름 및 스택 트레이스가 포함되도록 합니다.  Datadog 로그 검색 API 요청을 아래와 같이 구성합니다:
         - APM 트레이스 엔드포인트: ~/api/v2/spans/events/search
         - 로그 검색 엔드포인트: ~/api/v2/logs/events/search
         - 인증 헤더(DD-API-KEY 및 DD-APPLICATION-KEY)에 DD_API_KEY 및 DD_APP_KEY를 사용합니다.
         - 쿼리 및 시간 범위를 본문(body) 매개변수로 포함하여 POST 요청을 제출합니다.
-        - 타임스탬프, 로그 레벨, 메시지, 서비스 이름 및 스택 트레이스를 포함한 전체 원본(raw) 로그 데이터를 반환합니다.
   expected_output: 타임스탬프, 심각도 레벨, 서비스 이름, 로그 메시지 및 관련 오류 세부 정보나 스택 트레이스가 포함된 로그 항목을
     비롯하여, JSON 또는 구조화된 텍스트 형식으로 Datadog에서 검색된 원본 로그 데이터입니다.
   agent: datadog_log_retrieval_specialist
-  context: ''
 analyze_application_logs:
   description: |-
     Datadog에서 가져온 원본 로그 데이터를 분석합니다. 분석에는 다음 내용이 포함되어야 합니다:
@@ -24,7 +20,8 @@ analyze_application_logs:
   expected_output: 발생 횟수 및 타임스탬프가 포함된 심각한 오류 목록, 경고 요약, 감지된 이상 징후, 반복되는 패턴, 영향을 받는
     서비스, 예비 근본 원인 가설을 포함하는 구조화된 로그 분석 결과입니다.
   agent: application_error_analysis_expert
-  context: fetch_datadog_logs
+  context:
+  - fetch_datadog_logs
 generate_log_report:
   description: |-
     구조화된 로그 분석 결과를 사용하여 엔지니어링 팀을 위한 포괄적이고 읽기 쉬운 마크다운 보고서를 생성합니다. 보고서에는 다음 내용이 포함되어야 합니다:
@@ -37,7 +34,8 @@ generate_log_report:
   expected_output: 핵심 요약, 심각한 오류, 경고, 트렌드, 권장 사항 및 로그 샘플이 포함된 선택적 부록 등 모든 섹션을 다루는,
     서식이 잘 지정된 완전한 마크다운 보고서입니다.
   agent: technical_report_writer
-  context: analyze_application_logs
+  context:
+  - analyze_application_logs
 send_report_via_email:
   description: |-
     생성된 로그 분석 보고서를 Microsoft Outlook을 통해 {recipient_email}로 전송합니다.
@@ -47,4 +45,5 @@ send_report_via_email:
   expected_output: 로그 모니터링 보고서가 포함된 이메일이 Microsoft Outlook을 통해 {recipient_email}로
     성공적으로 전송되었다는 확인(Confirmation) 메시지입니다.
   agent: notification_dispatcher
-  context: generate_log_report
+  context:
+  - generate_log_report

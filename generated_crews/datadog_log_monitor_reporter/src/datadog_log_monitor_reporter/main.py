@@ -7,10 +7,10 @@ from datadog_log_monitor_reporter.crew import DatadogLogMonitorReporter
 def run():
     """Run the crew."""
     inputs = {
-        'time_range': '여기에 time_range 값을 입력하세요', # TODO: 런타임에 실제 값으로 치환
-        'recipient_email': '여기에 recipient_email 값을 입력하세요', # TODO: 런타임에 실제 값으로 치환
-        'datadog_query': '여기에 datadog_query 값을 입력하세요', # TODO: 런타임에 실제 값으로 치환
-        'limit': '여기에 limit 값을 입력하세요', # TODO: 런타임에 실제 값으로 치환
+        'limit': 10, # TODO: 런타임에 실제 값으로 치환
+        'time_range': 'last 1 hour', # TODO: 런타임에 실제 값으로 치환
+        'recipient_email': 'jck@shinsegae.com', # TODO: 런타임에 실제 값으로 치환
+        'datadog_query': 'service:erody-bo-backend status:error', # TODO: 런타임에 실제 값으로 치환
     }
     try:
         DatadogLogMonitorReporter().crew().kickoff(inputs=inputs)
