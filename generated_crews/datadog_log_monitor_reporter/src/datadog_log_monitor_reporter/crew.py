@@ -17,7 +17,7 @@ class DatadogLogMonitorReporter():
     def datadog_log_retrieval_specialist(self) -> Agent:
         return Agent(
             config=self.agents_config['datadog_log_retrieval_specialist'],
-            tools=[WebsiteSearchTool(), DatadogLogsSearch()],
+            tools=[DatadogLogsSearch(), WebsiteSearchTool()],
             verbose=True,
             reasoning=False,
             max_reasoning_attempts=None,
