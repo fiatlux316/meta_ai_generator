@@ -148,9 +148,9 @@ def generate_custom_tools_file(crew_name, package_name, config):
     input_vars = set()
     for task in config['tasks'].values():
         desc_vars = re.findall(r'\{(\w+)\}', task.get('description', ''))
-        #exp_vars = re.findall(r'\{(\w+)\}', task.get('expected_output', ''))
+        exp_vars = re.findall(r'\{(\w+)\}', task.get('expected_output', ''))
         input_vars.update(desc_vars)
-        #input_vars.update(exp_vars)
+        input_vars.update(exp_vars)
 
     input_vars_code1 = ''
     for var in input_vars:
@@ -333,9 +333,9 @@ def update_main_py_file(crew_name, package_name, config):
     input_vars = set()
     for task in config['tasks'].values():
         desc_vars = re.findall(r'\{(\w+)\}', task.get('description', ''))
-        #exp_vars = re.findall(r'\{(\w+)\}', task.get('expected_output', ''))
+        exp_vars = re.findall(r'\{(\w+)\}', task.get('expected_output', ''))
         input_vars.update(desc_vars)
-        #input_vars.update(exp_vars)
+        input_vars.update(exp_vars)
 
     # 2. inputs 딕셔너리 문자열 동적 생성
     if input_vars:
