@@ -37,6 +37,7 @@ generate_log_report:
   agent: technical_report_writer
   context:
   - analyze_application_logs
+  output_file: '{output_path}'
 send_report_via_email:
   description: |-
     생성된 로그 분석 보고서를 Microsoft Outlook을 통해 {recipient_email}로 전송합니다.

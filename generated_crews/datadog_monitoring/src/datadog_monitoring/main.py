@@ -7,11 +7,11 @@ from datadog_monitoring.crew import DatadogMonitoring
 def run():
     """Run the crew."""
     inputs = {
-        'datadog_query': '여기에 datadog_query 값을 입력하세요', # TODO: 런타임에 실제 값으로 치환
-        'limit': '여기에 limit 값을 입력하세요', # TODO: 런타임에 실제 값으로 치환
-        'time_range': '여기에 time_range 값을 입력하세요', # TODO: 런타임에 실제 값으로 치환
         'recipient_email': '여기에 recipient_email 값을 입력하세요', # TODO: 런타임에 실제 값으로 치환
-        'output_path': '여기에 output_path 값을 입력하세요', # TODO: 런타임에 실제 값으로 치환
+        'time_range': '여기에 time_range 값을 입력하세요', # TODO: 런타임에 실제 값으로 치환
+        'datadog_query': '여기에 datadog_query 값을 입력하세요', # TODO: 런타임에 실제 값으로 치환
+        'output_path': './output/output.md', # TODO: 런타임에 실제 값으로 치환
+        'limit': '여기에 limit 값을 입력하세요', # TODO: 런타임에 실제 값으로 치환
     }
     try:
         DatadogMonitoring().crew().kickoff(inputs=inputs)

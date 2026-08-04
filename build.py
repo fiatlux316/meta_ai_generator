@@ -120,6 +120,9 @@ def build_yaml_configs(csv_file_path):
                 context_list = [c.strip() for c in row['task_context'].split(',') if c.strip()]
                 crews_config['tasks'][task_key]['context'] = context_list
 
+            if row['task_output_file'] != '':
+                crews_config['tasks'][task_key]['output_file'] = row['task_output_file']
+
     return crews_config
 
 
