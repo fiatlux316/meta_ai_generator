@@ -4,10 +4,11 @@ from pydantic import BaseModel, Field
 
 class DatadogLogsSearchInput(BaseModel):
     """Input schema for DatadogLogsSearch."""
-    time_range: str = Field(..., description="time_range에 대한 설명을 자세하게 입력하세요.")
     datadog_query: str = Field(..., description="datadog_query에 대한 설명을 자세하게 입력하세요.")
-    recipient_email: str = Field(..., description="recipient_email에 대한 설명을 자세하게 입력하세요.")
     limit: str = Field(..., description="limit에 대한 설명을 자세하게 입력하세요.")
+    time_range: str = Field(..., description="time_range에 대한 설명을 자세하게 입력하세요.")
+    recipient_email: str = Field(..., description="recipient_email에 대한 설명을 자세하게 입력하세요.")
+    output_path: str = Field(..., description="output_path에 대한 설명을 자세하게 입력하세요.")
     
 
 class DatadogLogsSearch(BaseTool):
@@ -15,7 +16,7 @@ class DatadogLogsSearch(BaseTool):
     description: str = "DatadogLogsSearch에 대한 설명을 자세하게 입력하세요."
     args_schema: Type[BaseModel] = DatadogLogsSearchInput
 
-    def _run(self, time_range:str, datadog_query:str, recipient_email:str, limit:str) -> str:
+    def _run(self, datadog_query:str, limit:str, time_range:str, recipient_email:str, output_path:str) -> str:
         # [TODO: Pseudo-code] 실제 비즈니스 로직을 여기에 구현하세요.
         # 예: import pandas as pd
         # df = pd.read_csv('data.csv')

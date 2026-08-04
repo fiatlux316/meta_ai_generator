@@ -1,3 +1,7 @@
+from crewai import crew
+import sys
+from rich import default_styles
+from rich import default_styles
 import os
 import csv
 import subprocess
@@ -70,45 +74,42 @@ def build_yaml_configs(csv_file_path):
 
     with open(csv_file_path, mode='r', encoding='utf-8') as file:
         reader = csv.DictReader(file)
-
+        crews_config = {
+            'agents': {}, 'tasks': {}, 
+            'crewai_tools': set(), # crewai_tools 제공 툴
+            'custom_tools': set(),   # 자체 제작 툴
+            'agent_tools': {}
+        }
         for row in reader:
-            crew = row['crew_name']
 
-            if crew not in crews_config:
-                crews_config[crew] = {
-                    'agents': {}, 'tasks': {}, 
-                    'crewai_tools': set(), # crewai_tools 제공 툴
-                    'custom_tools': set(),   # 자체 제작 툴
-                    'agent_tools': {}
-                }
             agent_key = row['task_agent']
             task_key = row.get('task_name', f"task_{agent_key}") # task_name이 없으면 자동 생성
             custom_tool = row.get('custom_tool', '')
             crewai_tool = row.get('crewai_tool', '')
 
-            if agent_key not in crews_config[crew]['agent_tools']:
-                crews_config[crew]['agent_tools'][agent_key] = set()
+            if agent_key not in crews_config['agent_tools']:
+                crews_config['agent_tools'][agent_key] = set()
 
             for tool in custom_tool.split(','):
                 if tool != '' :
-                    crews_config[crew]['agent_tools'][agent_key].add(tool)
-                    crews_config[crew]['custom_tools'].add(tool)
+                    crews_config['agent_tools'][agent_key].add(tool)
+                    crews_config['custom_tools'].add(tool)
 
             for tool in crewai_tool.split(','):
                 if tool != '' :
-                    crews_config[crew]['agent_tools'][agent_key].add(tool)
-                    crews_config[crew]['crewai_tools'].add(tool)
+                    crews_config['agent_tools'][agent_key].add(tool)
+                    crews_config['crewai_tools'].add(tool)
 
             # Agents 설정 구성
-            if agent_key not in crews_config[crew]['agents']:
-                crews_config[crew]['agents'][agent_key] = {
+            if agent_key not in crews_config['agents']:
+                crews_config['agents'][agent_key] = {
                     'role': row['persona_role'],
                     'goal': row['persona_goal'],
                     'backstory': row['persona_backstory']
                 }
 
             # Tasks 설정 구성
-            crews_config[crew]['tasks'][task_key] = {
+            crews_config['tasks'][task_key] = {
                 'description': row['task_description'],
                 'expected_output': row['task_expected_output'],
                 'agent': agent_key,
@@ -117,23 +118,27 @@ def build_yaml_configs(csv_file_path):
             if row['task_context'] != '':
                 # 쉼표로 구분된 복수 context 지원, YAML 리스트로 저장
                 context_list = [c.strip() for c in row['task_context'].split(',') if c.strip()]
-                crews_config[crew]['tasks'][task_key]['context'] = context_list
+                crews_config['tasks'][task_key]['context'] = context_list
 
     return crews_config
 
 
 def run_scaffolding(crew_name):
     """CrewAI CLI를 사용하여 기본 프로젝트 스캐폴딩을 생성합니다."""
-    print(f"\n[Scaffolding] '{crew_name}' 크루 생성을 시작합니다...")
+    print(f"\n[Scaffolding] '{crew_name}' 크루 생성을 시작합니다.")
     try:
-        # crewai create crew 명령어 실행 (기존 폴더가 없을 경우에만)
+        # 기존 폴더가 없을 경우 자동(비대화형) 생성
         if not os.path.exists(crew_name):
-            subprocess.run(["crewai", "create", "crew", crew_name], check=True)
+            # --skip_provider 옵션으로 프롬프트 질의 자동 처리
+            subprocess.run(["crewai", "create", "crew", crew_name, "--skip_provider"], check=True)
             print(f"[Success] '{crew_name}' 스캐폴딩 완료.")
+            return True
         else:
             print(f"[Skip] '{crew_name}' 폴더가 이미 존재합니다.")
+            return True
     except subprocess.CalledProcessError as e:
         print(f"[Error] CLI 실행 중 오류 발생: {e}")
+        return False
 
 
 def generate_custom_tools_file(crew_name, package_name, config):
@@ -148,6 +153,24 @@ def generate_custom_tools_file(crew_name, package_name, config):
     tool_file = Path(crew_name) / "src" / package_name / "tools" / "custom_tool.py"
     tool_file.parent.mkdir(parents=True, exist_ok=True) # tools 폴더가 없으면 생성
 
+    # tool_file 이 기존에 존재하면 custom_tool.py.1 형태로 롤링해서 백업함
+    if tool_file.exists():
+        # 가장 오래된 .py.9 백업이 있다면 미리 삭제
+        max_backup = tool_file.with_suffix('.py.9')
+        if max_backup.exists():
+            max_backup.unlink()
+
+        # 존재하는 파일에 대해서만 .py.8 -> .py.9, .py.7 -> .py.8 로 1단계씩 시프트
+        for i in range(8, 0, -1):
+            src = tool_file.with_suffix(f'.py.{i}')
+            dst = tool_file.with_suffix(f'.py.{i+1}')
+            if src.exists():
+                src.rename(dst)
+
+        # 원본 custom_tool.py -> custom_tool.py.1 로 변경
+        tool_file.rename(tool_file.with_suffix('.py.1'))
+
+    
     # 1. 텍스트에서 {변수명} 추출 (중복 제거를 위해 set 사용)
     input_vars = set()
     for task in config['tasks'].values():
@@ -400,7 +423,19 @@ def add_necessary_files(crew_name, package_name, config):
 
 
 def main():
-    xlsx_path = 'spec.xlsx'
+
+    # 실행 시 argument 로 파일 이름 설정
+    args = sys.argv
+
+    # for i in range(0, len(args)):
+    #     print(f"argument[{i}] : {args[i]}")
+    
+    if len(args) < 2:
+        print(f"[{args[0]}] 사용법: uv run build.py [crew_name]")
+        return
+
+    crew_name = args[1]
+    xlsx_path = crew_name + ".xlsx" if crew_name is not None else ''
     
     if not os.path.exists(xlsx_path):
         print(f"[{xlsx_path}] 파일을 찾을 수 없습니다.")
@@ -418,28 +453,31 @@ def main():
     os.chdir("generated_crews") 
 
     # 3. 파싱된 데이터를 바탕으로 각각의 Crew 스캐폴딩 및 파일 업데이트
-    for crew_name in crews_config.keys():
-        package_name = crew_name.replace('-', '_')
+    package_name = crew_name.replace('-', '_')
 
-        # 1. CrewAI CLI를 사용하여 기본 프로젝트 스캐폴딩을 생성
-        run_scaffolding(crew_name)
+    # 1. CrewAI CLI를 사용하여 기본 프로젝트 스캐폴딩을 생성
+    if run_scaffolding(crew_name):
 
         # 2. Custom Tool 코드 먼저 생성
-        generate_custom_tools_file(crew_name, package_name, crews_config[crew_name])
+        generate_custom_tools_file(crew_name, package_name, crews_config)
 
         # 3. crew.py 동적 생성 및 덮어쓰기
-        update_crew_py_file(crew_name, package_name, crews_config[crew_name])
+        update_crew_py_file(crew_name, package_name, crews_config)
 
         # 4. 생성된 폴더 내 YAML 파일 덮어쓰기
-        update_config_files(crew_name, package_name, crews_config[crew_name])
+        update_config_files(crew_name, package_name, crews_config)
 
         # 5. main.py 업데이트 (동적 inputs 주입)
-        update_main_py_file(crew_name, package_name, crews_config[crew_name])
-        
+        update_main_py_file(crew_name, package_name, crews_config)
+    
         # 6. 후속 작업
-        add_necessary_files(crew_name, package_name, crews_config[crew_name])
+        add_necessary_files(crew_name, package_name, crews_config)
 
-    print("\n✅ 모든 자동화 애플리케이션 생성 프로세스가 완료되었습니다.")
+        print("\n✅ 모든 자동화 애플리케이션 생성 프로세스가 완료되었습니다.")
+
+    else:
+        print("\n❌ 자동화 애플리케이션 생성 프로세스가 중단되었습니다.")    
+
 
 if __name__ == "__main__":
     main()
