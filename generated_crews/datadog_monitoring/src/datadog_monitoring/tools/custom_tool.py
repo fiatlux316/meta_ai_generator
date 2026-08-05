@@ -2,6 +2,8 @@ from crewai.tools import BaseTool
 from typing import Type
 from pydantic import BaseModel, Field
 
+from datadog_monitoring.tools.datadog_api import datadog_apm_search, datadog_logs_search
+
 class DatadogLogsSearchInput(BaseModel):
     """Input schema for DatadogLogsSearch."""
     recipient_email: str = Field(..., description="recipient_email에 대한 설명을 자세하게 입력하세요.")
@@ -17,10 +19,7 @@ class DatadogLogsSearch(BaseTool):
     args_schema: Type[BaseModel] = DatadogLogsSearchInput
 
     def _run(self, recipient_email:str, time_range:str, datadog_query:str, output_path:str, limit:str) -> str:
-        # [TODO: Pseudo-code] 실제 비즈니스 로직을 여기에 구현하세요.
-        # 예: import pandas as pd
-        # df = pd.read_csv('data.csv')
-        # return df[df['target'] == query].to_string()
-        
-        return f"[DatadogLogsSearch] 성공적으로 실행되었습니다."
 
+        # custom logic to process the inputs and call the Datadog API
+        limit = int(limit)  # Convert limit to integer
+        return datadog_logs_search(datadog_query, time_range, limit)
