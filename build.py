@@ -441,7 +441,7 @@ def main():
     crew_name = parsed_args.crew_name
     config_only = parsed_args.config_only
 
-    xlsx_path = "./specs/" + crew_name + ".xlsx" if crew_name is not None else ''
+    xlsx_path = "./spec_crews/" + crew_name + ".xlsx" if crew_name is not None else ''
     
     if not os.path.exists(xlsx_path):
         print(f"[{xlsx_path}] 파일을 찾을 수 없습니다.")
