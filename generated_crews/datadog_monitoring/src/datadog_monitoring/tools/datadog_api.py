@@ -2,12 +2,15 @@ import os
 import re
 import json
 from datetime import datetime, timedelta, timezone
+from zoneinfo import ZoneInfo
 import requests
 
 
 def _parse_time_range(time_range: str) -> tuple[str, str]:
     """Parse a human-readable time range into ISO 8601 from/to timestamps."""
-    now = datetime.now(timezone.utc)
+
+    # timezone : Asia/Seoul
+    now = datetime.now(ZoneInfo("Asia/Seoul"))
     time_range_lower = time_range.lower().strip()
 
     # Parse patterns like "last 1 hour", "last 30 minutes", "last 7 days"
@@ -57,7 +60,7 @@ def _datadog_http_error_message(response: requests.Response) -> str:
 
 
 
-def datadog_logs_search(self, query: str, time_range: str, limit: int = 10) -> str:
+def datadog_logs_search(query: str, time_range: str, limit: int = 10) -> str:
     # Read credentials from environment
     api_key = os.environ.get("DD_API_KEY")
     app_key = os.environ.get("DD_APP_KEY")
@@ -74,6 +77,7 @@ def datadog_logs_search(self, query: str, time_range: str, limit: int = 10) -> s
 
     # Parse the human-readable time range into ISO 8601 timestamps
     from_time, to_time = _parse_time_range(time_range)
+    print(f"DEBUG: Parsed time range: from_time={from_time}, to_time={to_time}")
 
     # Build the API request
     url = f"https://api.{dd_site}/api/v2/logs/events/search"
@@ -89,6 +93,9 @@ def datadog_logs_search(self, query: str, time_range: str, limit: int = 10) -> s
             "to": to_time,
         },
         "sort": "-timestamp",
+        "options": {
+            "timezone": "Asia/Seoul"
+        },
         "page": {
             "limit": min(limit, 1000),
         },
@@ -104,6 +111,8 @@ def datadog_logs_search(self, query: str, time_range: str, limit: int = 10) -> s
 
     data = response.json()
     logs = data.get("data", [])
+    print(f"DEBUG: API Response Logs length: {len(logs)}")
+    print(f"DEBUG: API Response Logs: {logs}")
 
     if not isinstance(logs, list):
         return (
@@ -181,7 +190,7 @@ def datadog_logs_search(self, query: str, time_range: str, limit: int = 10) -> s
 
     return "\n".join(results)
 
-def datadog_apm_search(self, query: str, time_range: str, limit: int = 10) -> str:
+def datadog_apm_search(query: str, time_range: str, limit: int = 10) -> str:
     # Read credentials from environment
     api_key = os.environ.get("DD_API_KEY")
     app_key = os.environ.get("DD_APP_KEY")
@@ -221,6 +230,9 @@ def datadog_apm_search(self, query: str, time_range: str, limit: int = 10) -> st
                     "to": to_time,
                 },
                 "sort": "-timestamp",
+                "options": {
+                    "timezone": "Asia/Seoul"
+                },
                 "page": {
                     "limit": min(limit, 1000),
                 },

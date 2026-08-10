@@ -8,6 +8,7 @@ import subprocess
 import yaml
 from pathlib import Path
 import re
+import argparse
 
 import openpyxl
 
@@ -426,18 +427,20 @@ def add_necessary_files(crew_name, package_name, config):
 
 
 def main():
+    parser = argparse.ArgumentParser(description="CrewAI 스캐폴딩 및 자동화 생성 툴")
+    parser.add_argument("crew_name", help="크루 이름 (예: datadog_monitoring)")
+    parser.add_argument("--config-only", action="store_true", help="YAML 설정 파일만 갱신 (crew spec 파일 추출 후 config yaml 업데이트)")
 
-    # 실행 시 argument 로 파일 이름 설정
-    args = sys.argv
+    parsed_args = parser.parse_args()
 
-    # for i in range(0, len(args)):
-    #     print(f"argument[{i}] : {args[i]}")
+    # args 를 최소 1개 이상 받아서 처리해야 함
+    if len(sys.argv) < 2:
+        parser.print_help()
+        sys.exit(1)
     
-    if len(args) < 2:
-        print(f"[{args[0]}] 사용법: uv run build.py [crew_name]")
-        return
+    crew_name = parsed_args.crew_name
+    config_only = parsed_args.config_only
 
-    crew_name = args[1]
     xlsx_path = crew_name + ".xlsx" if crew_name is not None else ''
     
     if not os.path.exists(xlsx_path):
@@ -455,10 +458,16 @@ def main():
         os.makedirs("generated_crews")
     os.chdir("generated_crews") 
 
-    # 3. 파싱된 데이터를 바탕으로 각각의 Crew 스캐폴딩 및 파일 업데이트
     package_name = crew_name.replace('-', '_')
 
-    # 1. CrewAI CLI를 사용하여 기본 프로젝트 스캐폴딩을 생성
+    # --config-only 옵션이 지정된 경우: update_config_files 만 실행 후 종료
+    if config_only:
+        print(f"\n⚙️ [--config-only] '{crew_name}'의 YAML 설정 파일(agents.yaml, tasks.yaml)만 갱신합니다.")
+        update_config_files(crew_name, package_name, crews_config)
+        print("\n✅ YAML 설정 파일 갱신 완료.")
+        return
+
+    # 3. 파싱된 데이터를 바탕으로 각각의 Crew 스캐폴딩 및 파일 업데이트
     if run_scaffolding(crew_name):
 
         # 2. Custom Tool 코드 먼저 생성

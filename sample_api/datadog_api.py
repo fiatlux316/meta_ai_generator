@@ -2,11 +2,7 @@ import os
 import re
 import json
 from datetime import datetime, timedelta, timezone
-from typing import Type
-
 import requests
-from crewai.tools import BaseTool
-from pydantic import BaseModel, Field
 
 
 def _parse_time_range(time_range: str) -> tuple[str, str]:
@@ -61,7 +57,7 @@ def _datadog_http_error_message(response: requests.Response) -> str:
 
 
 
-def datadog_logs_search(self, query: str, time_range: str, limit: int = 10) -> str:
+def datadog_logs_search(query: str, time_range: str, limit: int = 10) -> str:
     # Read credentials from environment
     api_key = os.environ.get("DD_API_KEY")
     app_key = os.environ.get("DD_APP_KEY")
@@ -108,6 +104,8 @@ def datadog_logs_search(self, query: str, time_range: str, limit: int = 10) -> s
 
     data = response.json()
     logs = data.get("data", [])
+    print(f"DEBUG: API Response Logs length: {len(logs)}")
+    print(f"DEBUG: API Response Logs: {logs}")
 
     if not isinstance(logs, list):
         return (
@@ -185,7 +183,7 @@ def datadog_logs_search(self, query: str, time_range: str, limit: int = 10) -> s
 
     return "\n".join(results)
 
-def datadog_apm_search(self, query: str, time_range: str, limit: int = 10) -> str:
+def datadog_apm_search(query: str, time_range: str, limit: int = 10) -> str:
     # Read credentials from environment
     api_key = os.environ.get("DD_API_KEY")
     app_key = os.environ.get("DD_APP_KEY")
