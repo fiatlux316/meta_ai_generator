@@ -1,6 +1,6 @@
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
-from datadog_monitoring.tools.custom_tool import DatadogLogsSearch
+from datadog_monitoring.tools.custom_tool import DatadogLogsSearch, SendOutLookMail
 
 # devx api 호출
 from .devx_llm_wrapper import llm
@@ -62,6 +62,7 @@ class DatadogMonitoring():
     def notification_dispatcher(self) -> Agent:
         return Agent(
             config=self.agents_config['notification_dispatcher'],
+            tools=[SendOutLookMail()],
             verbose=True,
             reasoning=False,
             max_reasoning_attempts=None,

@@ -3,7 +3,6 @@ from typing import Type
 from pydantic import BaseModel, Field
 
 from datadog_monitoring.tools.datadog_api import datadog_apm_search, datadog_logs_search
-from datadog_monitoring.tools.email_api import send_outlook_email, send_google_email
 
 class DatadogLogsSearchInput(BaseModel):
     """Input schema for DatadogLogsSearch."""
@@ -25,21 +24,3 @@ class DatadogLogsSearch(BaseTool):
         # custom logic to process the inputs and call the Datadog API
         limit = int(limit)  # Convert limit to integer
         return datadog_logs_search(datadog_query, time_range, limit)
-
-class SendOutLookMailInput(BaseModel):
-    """Input schema for SendOutLookMail."""
-    subject: str = Field(..., description="subject에 대한 설명을 자세하게 입력하세요.")
-    body: str = Field(..., description="body에 대한 설명을 자세하게 입력하세요.")
-    recipient_email: str = Field(..., description="recipient_email에 대한 설명을 자세하게 입력하세요.")
-    
-
-class SendOutLookMail(BaseTool):
-    name: str = "SendOutLookMail"
-    description: str = "SendOutLookMail에 대한 설명을 자세하게 입력하세요."
-    args_schema: Type[BaseModel] = SendOutLookMailInput
-
-    def _run(self, subject:str, body:str, recipient_email:str) -> str:
-
-        #return send_outlook_email(subject, body, recipient_email)
-        return send_google_email(subject, body, recipient_email)
-
