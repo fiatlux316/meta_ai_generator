@@ -151,6 +151,14 @@ def build_yaml_configs(csv_file_path):
 
 def run_scaffolding(crew_name):
     """CrewAI CLI를 사용하여 기본 프로젝트 스캐폴딩을 생성합니다."""
+
+    # crewai 버전을 체크하여  1.14.x 이 아니면 에러 출력
+    crewai_version = subprocess.run(["crewai", "--version"], capture_output=True, text=True, check=True)
+    print(f"[Info] crewai version: {crewai_version.stdout.strip()}")
+    if crewai_version.stdout.strip().startswith("1.14.") == False:
+        print("[Error] crewai version must be 1.14.x")
+        sys.exit(1)
+
     print(f"\n[Scaffolding] '{crew_name}' 크루 생성을 시작합니다.")
     try:
         # 기존 폴더가 없을 경우 자동(비대화형) 생성
