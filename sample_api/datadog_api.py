@@ -2,12 +2,15 @@ import os
 import re
 import json
 from datetime import datetime, timedelta, timezone
+from zoneinfo import ZoneInfo
 import requests
 
 
 def _parse_time_range(time_range: str) -> tuple[str, str]:
     """Parse a human-readable time range into ISO 8601 from/to timestamps."""
-    now = datetime.now(timezone.utc)
+
+    # timezone : Asia/Seoul
+    now = datetime.now(ZoneInfo("Asia/Seoul"))
     time_range_lower = time_range.lower().strip()
 
     # Parse patterns like "last 1 hour", "last 30 minutes", "last 7 days"
@@ -74,6 +77,7 @@ def datadog_logs_search(query: str, time_range: str, limit: int = 10) -> str:
 
     # Parse the human-readable time range into ISO 8601 timestamps
     from_time, to_time = _parse_time_range(time_range)
+    print(f"DEBUG: Parsed time range: from_time={from_time}, to_time={to_time}")
 
     # Build the API request
     url = f"https://api.{dd_site}/api/v2/logs/events/search"
@@ -89,6 +93,9 @@ def datadog_logs_search(query: str, time_range: str, limit: int = 10) -> str:
             "to": to_time,
         },
         "sort": "-timestamp",
+        "options": {
+            "timezone": "Asia/Seoul"
+        },
         "page": {
             "limit": min(limit, 1000),
         },
@@ -223,6 +230,9 @@ def datadog_apm_search(query: str, time_range: str, limit: int = 10) -> str:
                     "to": to_time,
                 },
                 "sort": "-timestamp",
+                "options": {
+                    "timezone": "Asia/Seoul"
+                },
                 "page": {
                     "limit": min(limit, 1000),
                 },
