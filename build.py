@@ -30,6 +30,28 @@ def _str_representer(dumper, data):
 LiteralDumper.add_representer(str, _str_representer)
 
 
+def _backup_by_rolling (file_name):
+
+    # file_name 이 기존에 존재하면 backup file_name.1 형태로 롤링해서 백업함
+    # 자동화 생성 과정에서 실수를 방지하기 위해서 이전에 작업 했던 내용을 최대 9개 까지 백업
+    if file_name.exists():
+        # 가장 오래된 .py.9 백업이 있다면 미리 삭제
+        max_backup = file_name.with_suffix('.py.9')
+        if max_backup.exists():
+            max_backup.unlink()
+
+        # 존재하는 파일에 대해서만 .py.8 -> .py.9, .py.7 -> .py.8 로 1단계씩 시프트
+        for i in range(8, 0, -1):
+            src = file_name.with_suffix(f'.py.{i}')
+            dst = file_name.with_suffix(f'.py.{i+1}')
+            if src.exists():
+                src.rename(dst)
+
+        # 원본 file_name -> file_name.1 로 변경
+        file_name.rename(file_name.with_suffix('.py.1'))
+
+
+
 def xlsx_to_csv(xlsx_path, csv_path=None, sheet_index=0):
     """
     xlsx 파일의 지정된 시트를 csv 파일로 변환합니다.
@@ -157,24 +179,8 @@ def generate_custom_tools_file(crew_name, package_name, config):
     tool_file = Path(crew_name) / "src" / package_name / "tools" / "custom_tool.py"
     tool_file.parent.mkdir(parents=True, exist_ok=True) # tools 폴더가 없으면 생성
 
-    # tool_file 이 기존에 존재하면 custom_tool.py.1 형태로 롤링해서 백업함
-    if tool_file.exists():
-        # 가장 오래된 .py.9 백업이 있다면 미리 삭제
-        max_backup = tool_file.with_suffix('.py.9')
-        if max_backup.exists():
-            max_backup.unlink()
-
-        # 존재하는 파일에 대해서만 .py.8 -> .py.9, .py.7 -> .py.8 로 1단계씩 시프트
-        for i in range(8, 0, -1):
-            src = tool_file.with_suffix(f'.py.{i}')
-            dst = tool_file.with_suffix(f'.py.{i+1}')
-            if src.exists():
-                src.rename(dst)
-
-        # 원본 custom_tool.py -> custom_tool.py.1 로 변경
-        tool_file.rename(tool_file.with_suffix('.py.1'))
-
-    
+    _backup_by_rolling (tool_file)
+        
     # 1. 텍스트에서 {변수명} 추출 (중복 제거를 위해 set 사용)
     input_vars = set()
     for task in config['tasks'].values():
@@ -357,6 +363,9 @@ def update_main_py_file(crew_name, package_name, config):
     inputs 딕셔너리가 동적으로 적용된 main.py를 생성합니다.
     """
     main_file = Path(crew_name) / "src" / package_name / "main.py"
+
+    _backup_by_rolling (main_file)
+
     class_name = "".join([word.capitalize() for word in crew_name.replace('-', '_').split("_")])
 
     # 1. 텍스트에서 {변수명} 추출 (중복 제거를 위해 set 사용)

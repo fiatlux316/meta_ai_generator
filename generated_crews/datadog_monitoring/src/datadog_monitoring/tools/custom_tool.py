@@ -42,4 +42,3 @@ class SendOutLookMail(BaseTool):
 
         #return send_outlook_email(subject, body, recipient_email)
         return send_google_email(subject, body, recipient_email)
-
