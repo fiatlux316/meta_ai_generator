@@ -40,5 +40,5 @@ class SendOutLookMail(BaseTool):
 
     def _run(self, subject:str, body:str, recipient_email: str) -> str:
 
-        return send_outlook_email(subject, body, recipient_email)
-        #return send_google_email(subject, body, recipient_email)
+        #return send_outlook_email(subject, body, recipient_email)
+        return send_google_email(subject, body, recipient_email)
