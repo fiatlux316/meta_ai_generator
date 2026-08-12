@@ -429,7 +429,7 @@ def add_necessary_files(crew_name, package_name, config):
     else :     
         target_file = target_dir / "devx_llm_wrapper.py"
         with open(target_file, 'w', encoding='utf-8') as f:
-            f.write(open('../devx_llm_wrapper.py').read())
+            f.write(open('../sample_api/devx_llm_wrapper.py').read())
         print(f"[Copy] '{crew_name}'의 devx_llm_wrapper.py 파일 갱신 완료.")    
     
     # 2. custom env 내용을  .env 에 추가

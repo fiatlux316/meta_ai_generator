@@ -44,6 +44,7 @@ def send_google_email(subject, body, to_email):
 
     print("google_sender_email", google_sender_email)
     print("google_sender_password", google_sender_password)
+    print("to_email", to_email)
         
     # SMTP 설정 (예: Gmail 기준)
     smtp_server = "smtp.gmail.com"

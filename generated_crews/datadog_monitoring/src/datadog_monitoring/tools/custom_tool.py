@@ -38,7 +38,7 @@ class SendOutLookMail(BaseTool):
     description: str = "SendOutLookMail에 대한 설명을 자세하게 입력하세요."
     args_schema: Type[BaseModel] = SendOutLookMailInput
 
-    def _run(self, subject:str, body:str, recipient_email:str) -> str:
+    def _run(self, subject:str, body:str, recipient_email: str) -> str:
 
-        #return send_outlook_email(subject, body, recipient_email)
-        return send_google_email(subject, body, recipient_email)
+        return send_outlook_email(subject, body, recipient_email)
+        #return send_google_email(subject, body, recipient_email)

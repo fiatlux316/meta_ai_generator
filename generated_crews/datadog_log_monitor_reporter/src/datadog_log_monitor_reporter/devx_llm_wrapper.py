@@ -71,8 +71,11 @@ class CompanyLLMWrapper(BaseLLM):
         payload = {
             "model": self.model,
             "messages": formatted_messages,
-            "temperature": self.temperature or 0.0,
         }
+
+        # Bedrock 모델은 현재 이 게이트웨이에서 temperature 관련 필드를 전달하면 실패합니다.
+        if self.temperature is not None and not (isinstance(self.model, str) and self.model.startswith("bedrock/")):
+            payload["temperature"] = self.temperature
 
         try:
             # API 호출
