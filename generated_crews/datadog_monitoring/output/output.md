@@ -1,199 +1,199 @@
 # 로그 분석 보고서
-
-**분석 대상**: `service:erody-bo-backend-20 status:error`  
-**분석 기간**: 2026-08-12T20:53:39 ~ 2026-08-12T21:53:39 (KST)  
-**보고서 생성일**: 2026-08-12  
+**생성일**: 2026-08-12  
+**담당자**: 기술 보고서 작성자  
 
 ---
 
-## 📋 핵심 요약 (Executive Summary)
+## 1. 핵심 요약 (Executive Summary)
 
-**모니터링 기간**: 1시간 (20:53 - 21:53 KST)
+**모니터링 기간**: 2026-08-12 21:37:32 ~ 22:37:32 KST (1시간)  
+**대상 서비스**: erody-bo-backend-20  
+**분석된 로그 수**: 3개 (모두 ERROR 수준)
 
-**주요 발견사항**:
-- ✅ **오류 발생 없음**: 지정된 시간 범위 동안 `erody-bo-backend-20` 서비스에서 error 레벨의 로그가 발견되지 않음
-- 🔍 **상태 불명확**: 서비스가 정상적으로 운영 중이거나 로그 수집에 문제가 있을 가능성
-- ⚠️ **추가 조사 필요**: 서비스 헬스체크 및 로그 수집 상태 점검 권장
-
-**전체 평가**: 현재 시점에서는 안정적이나 추가 검증 필요
-
----
-
-## 🔴 심각한 오류 (Critical Errors)
-
-### 발견된 오류 현황
-| 시간대 | 오류 유형 | 발생 빈도 | 영향받는 서비스 | 심각도 |
-|--------|-----------|-----------|------------------|---------|
-| 20:53-21:53 | 없음 | 0건 | 없음 | N/A |
-
-### 오류 분석 결과
-- **총 오류 건수**: **0건**
-- **치명적 오류**: 없음
-- **서비스 장애**: 감지되지 않음
-- **데이터 손실**: 해당 없음
+### 주요 발견 사항
+- 🔴 **심각한 상황**: 모든 로그가 `gateway_hostname_mismatch` 오류로 분류
+- ⚠️ **로그 수집 이상**: 타임스탬프, 메시지, 스택 트레이스 정보 부재
+- 📊 **영향 범위**: 2개 AWS 호스트에서 동일한 네트워크 게이트웨이 문제 발생
+- 🚨 **가용성 위험**: 서비스 연결성에 직접적 영향을 미치는 HIGH 수준 문제
 
 ---
 
-## ⚠️ 경고 및 이상 징후 (Warnings & Anomalies)
+## 2. 심각한 오류 (Critical Errors)
 
-### 감지된 이상 징후
-1. **로그 부재 상황**
-   - 유형: 로그 데이터 부족
-   - 영향: 서비스 상태 파악 곤란
-   - 발생 기간: 전체 모니터링 기간 (1시간)
+### 오류 분류: **HIGH SEVERITY**
 
-2. **잠재적 문제점**
-   - 로그 수집 시스템 이슈 가능성
-   - 서비스 완전 정지 가능성 (낮음)
-   - 태그 또는 필터 설정 오류 가능성
+| # | 타임스탬프 | 오류 유형 | 호스트 | 컨테이너 ID | 빈도 | 영향 서비스 |
+|---|-----------|-----------|--------|-------------|------|------------|
+| 1 | N/A | gateway_hostname_mismatch | ip-100-66-82-21 | 63d175dd334e | 1회 | erody-bo-backend-20 |
+| 2 | N/A | gateway_hostname_mismatch | ip-100-66-82-21 | 63d175dd334e | 1회 | erody-bo-backend-20 |
+| 3 | N/A | gateway_hostname_mismatch | ip-100-66-75-55 | 3c3fe93fa25d | 1회 | erody-bo-backend-20 |
 
-### 비치명적 문제 요약
-- 현재 분석 범위에서는 WARN 레벨 로그 미포함
-- 서비스 응답성 데이터 부족
-- 트래픽 패턴 정보 부재
+### 영향받는 인프라
+**AWS 인스턴스:**
+- `i-007270ad257ba3dea` (ip-100-66-82-21) - 2건 발생
+- `i-04132f5cd16ce2074` (ip-100-66-75-55) - 1건 발생
 
----
-
-## 📈 트렌드 (Trends)
-
-### 지난 1시간 패턴 분석
-
-#### 시간대별 오류 분포
-```
-20:53 ────────────────────────── 21:53
-  0건    0건    0건    0건    0건
-```
-
-#### 관찰된 패턴
-1. **일관된 무오류 상태**: 전체 1시간 동안 오류 로그 없음
-2. **평탄한 추세**: 오류 발생률 변동 없음 (0% 유지)
-3. **예측 불가**: 과거 데이터 부족으로 트렌드 예측 제한적
-
-#### 비교 분석 (권장사항)
-- 전일 동시간대 비교 필요
-- 주간/월간 패턴과의 상관관계 분석 필요
-- 비즈니스 시간 vs 비즈니스 외 시간 비교 필요
+**Kubernetes 환경:**
+- 네임스페이스: `emart-chatbot`
+- 배포: `erody-bo-backend-20`
+- 컨테이너 이미지: `v1.1.28`
 
 ---
 
-## 🎯 권장 사항 (Recommendations)
+## 3. 경고 및 이상 징후 (Warnings & Anomalies)
 
-### 1. 즉시 실행 조치 (High Priority)
+### 🚨 주요 이상 징후
 
-#### A. 서비스 상태 점검
+#### 로그 수집 시스템 이상
+- **타임스탬프 누락**: 모든 로그에서 `timestamp: "N/A"`
+- **메시지 부재**: 실제 오류 메시지 확인 불가
+- **스택 트레이스 없음**: 디버깅 정보 부족
+- **메타데이터 불완전**: 일부 서버 타입 정보 누락
+
+#### 네트워크/게이트웨이 이상
+- **호스트명 불일치**: 모든 오류가 동일한 게이트웨이 문제 패턴
+- **다중 호스트 영향**: 2개의 서로 다른 AWS 인스턴스에서 발생
+- **지속적 발생**: 1시간 내 3회 반복 발생
+
+---
+
+## 4. 트렌드 (Trends)
+
+### 지난 1시간 동안 관찰된 패턴
+
+#### 오류 패턴 일관성
+- **100% 동일 오류 유형**: 모든 로그가 `gateway_hostname_mismatch`
+- **분산된 발생**: 2개 호스트에 걸쳐 분산 발생 (67% vs 33%)
+- **안정된 발생률**: 급격한 증가나 감소 없이 일정한 패턴
+
+#### 시간 기반 분석 제한사항
+- 타임스탬프 부재로 정확한 시간적 트렌드 분석 불가
+- 오류 발생 간격 및 클러스터링 패턴 파악 어려움
+
+#### 예상되는 트렌드
+- **지속성**: 근본 원인 해결 전까지 동일한 패턴 지속 예상
+- **확산 가능성**: 추가 호스트로의 문제 확산 위험
+
+---
+
+## 5. 권장 사항 (Recommendations)
+
+### 🚨 즉시 조치 필요 (Critical - 1-2시간 내)
+
+#### 1. 게이트웨이 설정 긴급 점검
 ```bash
-# Kubernetes 환경인 경우
-kubectl get pods -l app=erody-bo-backend-20 -o wide
-kubectl describe pod <pod-name>
-kubectl logs <pod-name> --tail=100
+# Kubernetes 서비스 및 엔드포인트 확인
+kubectl get svc,endpoints -n emart-chatbot
+kubectl describe ingress -n emart-chatbot
 
-# Docker 환경인 경우  
-docker ps | grep erody-bo-backend-20
-docker logs <container-id> --tail=100
+# DNS 해상도 테스트
+nslookup erody-bo-backend-20-svc.emart-chatbot.svc.cluster.local
 ```
 
-#### B. 로그 수집 시스템 점검
-- Datadog 에이전트 연결 상태 확인
-- 로그 전송 지연 여부 점검
-- 다른 로그 레벨(INFO, WARN) 존재 여부 확인
-
-### 2. 단기 조치 (Medium Priority)
-
-#### A. 확장된 분석 수행
-```datadog
-# 더 넓은 시간 범위 분석
-service:erody-bo-backend-20 status:(error OR warn) 
-# 지난 24시간 데이터
-
-# 모든 로그 레벨 확인
-service:erody-bo-backend-20
-# 서비스 전반적 로그 활동 점검
+#### 2. 로그 수집 시스템 복구
+```bash
+# Datadog Agent 상태 확인
+kubectl get pods -n datadog
+kubectl logs -n datadog datadog-agent-xxxxx
 ```
 
-#### B. 인프라 메트릭 상관분석
-- CPU/메모리 사용률과 로그 패턴 연계
-- 네트워크 트래픽과 애플리케이션 로그 관계
-- 데이터베이스 연결 상태 모니터링
+### 📋 단기 조치 (High Priority - 24시간 내)
 
-### 3. 장기 개선안 (Long-term)
+#### 1. 상세 모니터링 구성
+- AWS ALB/NLB 헬스체크 상태 확인
+- Kubernetes 이벤트 로그 수집 강화
+- 네트워크 연결성 메트릭 추가
 
-#### A. 모니터링 체계 강화
-1. **무음 알림 설정**
-   ```yaml
-   # 예시 알림 규칙
-   alert_conditions:
-     - name: "No Error Logs for 30 minutes"
-       condition: "logs(service:erody-bo-backend-20 status:error).rollup(count).last(30m) == 0"
-       message: "No error logs detected - check service health"
-   ```
+#### 2. 근본 원인 분석
+- 애플리케이션 로그 직접 접근 (`kubectl logs`)
+- AWS 로드밸런서 액세스 로그 분석
+- Service Mesh (Istio/Linkerd) 설정 검토
 
-2. **헬스체크 모니터링**
-   - 애플리케이션 레벨 헬스체크 엔드포인트 구현
-   - 비즈니스 로직 기반 활성도 지표 설정
+### 🔧 중기 개선 (Medium Priority - 1주일 내)
 
-#### B. 로그 품질 개선
-- 구조화된 로그 포맷 표준화
-- 중요 비즈니스 이벤트 로깅 강화
-- 로그 레벨 정책 재검토
+#### 1. 시스템 복원력 강화
+- 게이트웨이 장애 시 자동 재시작 메커니즘 구현
+- 멀티-AZ 로드밸런싱 검토
+- Circuit Breaker 패턴 적용 검토
 
-### 4. 후속 조치 일정
-- **1시간 이내**: 서비스 헬스체크 완료
-- **4시간 이내**: 확장된 로그 분석 결과 검토
-- **24시간 이내**: 근본 원인 파악 및 개선 계획 수립
-- **1주일 이내**: 모니터링 체계 개선 구현
+#### 2. 모니터링 인프라 개선
+- 로그 수집 파이프라인 재설계
+- 실시간 알림 시스템 개선
+- SLI/SLO 기반 모니터링 도입
+
+### 📊 장기 전략 (Low Priority - 1개월 내)
+- 통합 관측 가능성 플랫폼 구축
+- 자동화된 인시던트 대응 시스템 구축
+- 카오스 엔지니어링을 통한 복원력 테스트
 
 ---
 
-## 📎 부록 (Appendix)
+## 6. 부록 (Appendix)
 
-### A. 검색 쿼리 정보
+### A. 원본 로그 샘플
+
+#### 샘플 1: ip-100-66-82-21 호스트
+```json
+{
+  "error_type": "gateway_hostname_mismatch",
+  "status": "error",
+  "severity_level": "error",
+  "host": "ip-100-66-82-21.ap-northeast-2.compute.internal-emart-chatbot-agentbo",
+  "container_id": "63d175dd334e3fff...",
+  "aws_instance": "i-007270ad257ba3dea",
+  "service": "erody-bo-backend-20",
+  "namespace": "emart-chatbot",
+  "image_version": "v1.1.28",
+  "timestamp": "N/A",
+  "log_message": "N/A",
+  "stack_trace": "N/A"
+}
 ```
-Query: service:erody-bo-backend-20 status:error
-Time Range: 2026-08-12T20:53:39 to 2026-08-12T21:53:39 (KST)
-Results: 0 logs found
+
+#### 샘플 2: ip-100-66-75-55 호스트
+```json
+{
+  "error_type": "gateway_hostname_mismatch",
+  "status": "error",
+  "severity_level": "error",
+  "host": "ip-100-66-75-55.ap-northeast-2.compute.internal-emart-chatbot-agentbo",
+  "container_id": "3c3fe93fa25d2c34...",
+  "aws_instance": "i-04132f5cd16ce2074",
+  "service": "erody-bo-backend-20",
+  "namespace": "emart-chatbot",
+  "image_version": "v1.1.28",
+  "timestamp": "N/A",
+  "log_message": "N/A",
+  "stack_trace": "N/A"
+}
 ```
 
-### B. 대체 검색 권장사항
-다음 쿼리들을 통한 추가 분석을 권장합니다:
+### B. 참고 명령어
 
-1. **전체 로그 활동 확인**
-   ```
-   service:erody-bo-backend-20
-   ```
+#### Kubernetes 디버깅
+```bash
+# Pod 상태 확인
+kubectl get pods -n emart-chatbot -l app=erody-bo-backend-20
 
-2. **경고 레벨 이상 로그**
-   ```
-   service:erody-bo-backend-20 status:(warn OR error OR fatal)
-   ```
+# 서비스 연결성 테스트
+kubectl run test-pod --image=busybox -it --rm -- /bin/sh
+# Pod 내부에서: wget -qO- http://erody-bo-backend-20-svc:8080/health
 
-3. **최근 24시간 패턴 분석**
-   ```
-   service:erody-bo-backend-20 status:error
-   # 시간 범위: 지난 24시간
-   ```
+# 이벤트 로그 확인
+kubectl get events -n emart-chatbot --sort-by='.lastTimestamp'
+```
 
-### C. 점검 체크리스트
+#### AWS 리소스 확인
+```bash
+# ALB 타겟 그룹 상태
+aws elbv2 describe-target-health --target-group-arn <target-group-arn>
 
-#### 서비스 상태 점검
-- [ ] 컨테이너/인스턴스 실행 상태
-- [ ] 헬스체크 엔드포인트 응답
-- [ ] CPU/메모리 리소스 사용률
-- [ ] 네트워크 연결 상태
-
-#### 로그 시스템 점검  
-- [ ] Datadog 에이전트 연결
-- [ ] 로그 전송 지연 여부
-- [ ] 다른 서비스 로그 정상 수집 여부
-- [ ] 로그 필터링/태그 설정 확인
-
-### D. 비상 연락처
-모니터링 결과 이상 발견 시 연락할 담당자:
-- **DevOps 팀**: [연락처 정보]
-- **백엔드 개발팀**: [연락처 정보]  
-- **인프라 팀**: [연락처 정보]
+# 인스턴스 상태
+aws ec2 describe-instances --instance-ids i-007270ad257ba3dea i-04132f5cd16ce2074
+```
 
 ---
 
-**보고서 생성 시각**: 2026-08-12T21:54:00 KST  
-**다음 정기 보고서**: 2026-08-12T22:54:00 KST  
-**긴급 재분석 필요시**: 언제든지 요청 가능
+**보고서 생성 완료**: 2026-08-12  
+**다음 검토 일정**: 문제 해결 후 24시간 내 후속 분석 권장  
+**에스컬레이션**: 12시간 내 해결되지 않을 시 인프라팀 및 네트워킹팀 에스컬레이션 필요
