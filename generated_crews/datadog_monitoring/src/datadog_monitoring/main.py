@@ -11,7 +11,7 @@ def run():
         'time_range': 'last 1 hour', # TODO: 런타임에 실제 값으로 치환
         'datadog_query': 'service:erody-bo-backend-20 status:error', # TODO: 런타임에 실제 값으로 치환
         'output_path': './output/output.md', # TODO: 런타임에 실제 값으로 치환
-        'limit': '3', # TODO: 런타임에 실제 값으로 치환
+        'limit': '5', # TODO: 런타임에 실제 값으로 치환
     }
     try:
         DatadogMonitoring().crew().kickoff(inputs=inputs)
