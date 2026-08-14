@@ -6,9 +6,10 @@ set -euo pipefail
 
 DD_API_KEY="${DD_API_KEY}"
 DD_APP_KEY="${DD_APP_KEY}"
-FROM_TIME="2026-08-05T09:00:00.000Z"
-TO_TIME="2026-08-05T10:00:00.000Z"
-QUERY="service:erody-bo-backend-20 status:error"
+FROM_TIME="now-1h"
+TO_TIME="now"
+#QUERY="service:erody-bo-backend-20 status:error"
+QUERY="service:erody-bo-backend-20 @http.status_code:[500 TO 599]"
 LIMIT=3
 
 payload=$(cat <<EOF

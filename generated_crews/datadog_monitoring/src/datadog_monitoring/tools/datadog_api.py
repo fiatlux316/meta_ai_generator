@@ -253,7 +253,7 @@ def datadog_apm_search(query: str, time_range: str, limit: int = 10) -> str:
     #print(f"DEBUG: API Response Data: {data}")
     logs = data.get("data", [])
     print(f"DEBUG: API Response Logs length: {len(logs)}")
-    print(f"DEBUG: API Response Logs: {logs}")
+    print(f"DEBUG: API Response Logs sample: {logs[0] if logs else 'No logs returned'}")
 
 
     if not isinstance(logs, list):
