@@ -3,14 +3,10 @@ import smtplib
 from email.mime.text import MIMEText
 import markdown  # 👈 설치한 마크다운 라이브러리 임포트
 
-
-sender_email = os.environ.get("OUTLOOK_EMAIL")
-sender_password = os.environ.get("OUTLOOK_PASSWORD")
-
-google_sender_email = os.environ.get("GOOGLE_EMAIL")
-google_sender_password = os.environ.get("GOOGLE_PASSWORD")
-
 def send_outlook_email(subject, markdown_content, to_email):
+
+    sender_email = os.environ.get("OUTLOOK_EMAIL")
+    sender_password = os.environ.get("OUTLOOK_PASSWORD")
 
     print("sender_email", sender_email)
     print("sender_password", sender_password)
@@ -70,6 +66,9 @@ def send_outlook_email(subject, markdown_content, to_email):
 
 
 def send_google_email(subject, markdown_content, to_email):
+
+    google_sender_email = os.environ.get("GOOGLE_EMAIL")
+    google_sender_password = os.environ.get("GOOGLE_PASSWORD")
 
     print("google_sender_email", google_sender_email)
     print("google_sender_password", google_sender_password)

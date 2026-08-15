@@ -264,7 +264,7 @@ def update_crew_py_file(crew_name, package_name, config):
     #print('config.get("custom_tools") : ', config.get('custom_tools'))
     if config.get('custom_tools'):
         custom_tools_str = ", ".join(config['custom_tools'])
-        imports_code += f"from {package_name}.tools.custom_tool import {custom_tools_str}\n"
+        imports_code += f"from .tools.custom_tool import {custom_tools_str}\n"
 
     # 2. Agent 메서드 코드 동적 생성
     agents_code = ""

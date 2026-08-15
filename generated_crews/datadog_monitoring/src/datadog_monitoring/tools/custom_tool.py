@@ -2,8 +2,8 @@ from crewai.tools import BaseTool
 from typing import Type
 from pydantic import BaseModel, Field
 
-from datadog_monitoring.tools.datadog_api import datadog_apm_search, datadog_logs_search
-from datadog_monitoring.tools.email_api import send_outlook_email, send_google_email
+from .datadog_api import datadog_apm_search, datadog_logs_search
+from .email_api import send_outlook_email, send_google_email
 
 class DatadogLogsSearchInput(BaseModel):
     """Input schema for DatadogLogsSearch."""
