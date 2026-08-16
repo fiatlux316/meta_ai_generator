@@ -4,6 +4,8 @@ import zipfile
 import argparse
 import tempfile
 import requests
+from dotenv import load_dotenv
+load_dotenv()
 
 def zip_directory(source_dir, crew_name, output_zip_path):
     # 압축 제외 디렉토리 정의 (가상환경, Git, 의존성, 빌드 산출물 등)
@@ -22,8 +24,10 @@ def zip_directory(source_dir, crew_name, output_zip_path):
                 zipf.write(file_path, arcname_with_root)
 
 def main():
-    default_url = os.environ.get("CREWAI_AMP_URL") or os.environ.get("AMP_URL") or "http://localhost:8000"
-    default_key = os.environ.get("CREWAI_AMP_KEY") or os.environ.get("CREWAI_API_KEY") or os.environ.get("AMP_KEY") or "super-secret-company-key"
+    default_url = os.environ.get("CREWAI_AMP_URL")
+    print(f'default_url = {default_url}')
+    default_key = os.environ.get("CREWAI_AMP_KEY")
+    print(f'default_key = {default_key}')
 
     parser = argparse.ArgumentParser(description="Deploy CrewAI Application to Private AMP")
     parser.add_argument("crew_name", help="크루 이름 (예: datadog_monitoring)")
