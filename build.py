@@ -432,14 +432,24 @@ def add_necessary_files(crew_name, package_name, config):
             f.write(open('../sample_api/devx_llm_wrapper.py').read())
         print(f"[Copy] '{crew_name}'의 devx_llm_wrapper.py 파일 갱신 완료.")    
     
-    # 2. custom env 내용을  .env 에 추가
+    # # 2. deploy.py 복사 (to [CREW_NAME]/)
+    # target_dir = Path(crew_name)
+    # if not target_dir.exists():
+    #     print(f"[Warning] 대상 폴더를 찾을 수 없습니다: {target_dir}")
+    # else :     
+    #     target_file = target_dir / "deploy.py"
+    #     with open(target_file, 'w', encoding='utf-8') as f:
+    #         f.write(open('../sample_api/deploy.py').read())
+    #     print(f"[Copy] '{crew_name}'의 deploy.py 파일 갱신 완료.")   
+
+    # 3. custom env 내용을  .env 에 추가
     target_dir = Path(crew_name)
     if not target_dir.exists():
         print(f"[Warning] 대상 폴더를 찾을 수 없습니다: {target_dir}")
     else :     
         target_file = target_dir / ".env"
         with open(target_file, 'w', encoding='utf-8') as f:
-            f.write(open('../env.local').read()) # 본인의 env.xxx 로 대체해서 사용
+            f.write(open('../.env').read()) # 본인의 env.xxx 로 대체해서 사용
         print(f"[Copy] '{crew_name}'의 .env 파일 갱신 완료.")    
 
 
