@@ -10,6 +10,7 @@ class DatadogLogsSearchInput(BaseModel):
     time_range: str = Field(..., description="분석할 타임 구간 (last 1 hour, last 6 hours, last 24 hours 등)")
     datadog_query: str = Field(..., description="datadog 질의 쿼리, inputs 에서 전달 받음")
     limit: str = Field(..., description="결과로 반환할 최대 로그 수, inputs 에서 전달 받음")
+    search_option: str = Field(..., description="검색 옵션 (logs 또는 apm), inputs 에서 전달 받음")
     
 
 class DatadogLogsSearch(BaseTool):
@@ -17,12 +18,17 @@ class DatadogLogsSearch(BaseTool):
     description: str = "Datadog Logs Search tool 입니다."
     args_schema: Type[BaseModel] = DatadogLogsSearchInput
 
-    def _run(self, time_range:str, datadog_query:str, limit:str) -> str:
+    def _run(self, time_range:str, datadog_query:str, limit:str, search_option:str) -> str:
 
         # custom logic to process the inputs and call the Datadog API
         limit = int(limit)  # Convert limit to integer
-        #return datadog_logs_search(datadog_query, time_range, limit)
-        return datadog_apm_search(datadog_query, time_range, limit)
+
+        if search_option == "logs":
+            return datadog_logs_search(datadog_query, time_range, limit)
+        elif search_option == "apm":
+            return datadog_apm_search(datadog_query, time_range, limit)
+        else:
+            raise ValueError(f"Invalid search_option: {search_option}. Must be 'logs' or 'apm'.")   
 
 class SendOutLookMailInput(BaseModel):
     """Input schema for SendOutLookMail."""

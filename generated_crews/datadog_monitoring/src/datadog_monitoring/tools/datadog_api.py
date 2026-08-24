@@ -61,6 +61,8 @@ def _datadog_http_error_message(response: requests.Response) -> str:
 
 
 def datadog_logs_search(query: str, time_range: str, limit: int = 10) -> str:
+
+    print("call datadog_logs_search")
     # Read credentials from environment
     api_key = os.environ.get("DD_API_KEY")
     app_key = os.environ.get("DD_APP_KEY")
@@ -188,9 +190,14 @@ def datadog_logs_search(query: str, time_range: str, limit: int = 10) -> str:
             f"Use pagination cursor to fetch the next page."
         )
 
-    return "\n".join(results)
+    output = "\n".join(results)
+    print(f"DEBUG: Formatted output:\n{output[:1000]}")
+    return output
 
 def datadog_apm_search(query: str, time_range: str, limit: int = 10) -> str:
+
+    print("call datadog_apm_search")
+
     # Read credentials from environment
     api_key = os.environ.get("DD_API_KEY")
     app_key = os.environ.get("DD_APP_KEY")
@@ -330,4 +337,6 @@ def datadog_apm_search(query: str, time_range: str, limit: int = 10) -> str:
             f"Use pagination cursor to fetch the next page."
         )
 
-    return "\n".join(results)
+    output = "\n".join(results)
+    print(f"DEBUG: Formatted output:\n{output[:1000]}")
+    return output
