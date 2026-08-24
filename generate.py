@@ -155,7 +155,16 @@ def run_scaffolding(crew_name):
     # crewai 버전을 체크하여  1.14.x 이 아니면 에러 출력
     crewai_version = subprocess.run(["crewai", "--version"], capture_output=True, text=True, check=True)
     print(f"[Info] crewai version: {crewai_version.stdout.strip()}")
-    if crewai_version.stdout.strip().startswith("1.14.") == False:
+
+    # crewai, version 1.14.7 형태로 출력 : 1.14.7 만 추출
+    crewai_version_match = re.search(r'crewai, version ([\d.]+)', crewai_version.stdout)
+    if not crewai_version_match:
+        print("[Error] crewai version could not be determined")
+        sys.exit(1)
+        
+    crewai_version_str = crewai_version_match.group(1)
+    print(f"[Info] crewai version: {crewai_version_str}")
+    if crewai_version_str.startswith("1.14.") == False:
         print("[Error] crewai version must be 1.14.x")
         sys.exit(1)
 
