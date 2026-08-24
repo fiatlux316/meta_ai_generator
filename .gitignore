@@ -13,4 +13,3 @@ wheels/
 .DS_Store
 #generated_crews/*
 #!generated_crews/.gitkeep
-env.local
