@@ -1,10 +1,6 @@
 task_name,task_context,task_description,task_expected_output,task_output_file,task_agent,persona_role,persona_goal,persona_backstory,custom_tool,crewai_tool
-fetch_datadog_logs,,"Datadog Logs API를 사용하여 {time_range} 시간 범위 동안 {datadog_query} 쿼리와 일치하는 애플리케이션 로그를 가져옵니다. 최대 {limit}개의 로그 이벤트를 가져옵니다. 반환된 데이터에 타임스탬프, 로그 레벨, 메시지, 서비스 이름 및 스택 트레이스가 포함되도록 합니다.  Datadog 로그 검색 API 요청을 아래와 같이 구성합니다.  조회 옵션은 {seach_option} 에 따라 다르게 호출합니다. 데이터 0건 시 임의 생성 금지 및 ""조회 결과 없음"" 을 분명히 명시합니다.
-    - apm : APM 트레이스 엔드포인트: ~/api/v2/spans/events/search
-    - logs : 로그 검색 엔드포인트: ~/api/v2/logs/events/search
-    - 인증 헤더(DD-API-KEY 및 DD-APPLICATION-KEY)에 DD_API_KEY 및 DD_APP_KEY를 사용합니다.
-    - 쿼리 및 시간 범위를 본문(body) 매개변수로 포함하여 POST 요청을 제출합니다.","타임스탬프, 심각도 레벨, 서비스 이름, 로그 메시지 및 관련 오류 세부 정보나 스택 트레이스가 포함된 로그 항목을 비롯하여, JSON 또는 구조화된 텍스트 형식으로 Datadog에서 검색된 원본 로그 데이터입니다.",,datadog_log_retrieval_specialist,Datadog 로그 검색 전문가,"{time_range} 시간 범위 동안 {datadog_query} 쿼리를 기반으로 API를 사용하여 Datadog에서 애플리케이션 로그를 가져오고, 분석을 위해 원본(raw) 로그 데이터를 반환합니다. Custom_tool 을 호출할때는 {seach_option} 에 따라서 다르게 호출되도록 해당 파라미터를 전달합니다.","당신은 클라우드 로깅 인프라 및 Datadog API 전문가입니다. Datadog 로그 파이프라인을 쿼리하고, 적절한 인증을 통해 API 요청을 구성하며, 후속 처리를 위해 구조화된 로그 데이터를 추출하는 데 깊은 경험을 가지고 있습니다. Datadog에 인증하기 위해 DD_API_KEY, DD_APP_KEY 및 DD_SITE 환경 변수를 사용합니다.",DatadogLogsSearch,
-analyze_application_logs,fetch_datadog_logs,"Datadog에서 가져온 원본 로그 데이터를 분석합니다. 분석에는 다음 내용이 포함되어야 합니다:
+fetch_datadog_logs,,"Datadog Logs API를 사용하여 {time_range} 시간 범위 동안 {datadog_query} 쿼리와 일치하는 애플리케이션 로그를 가져옵니다. 최대 {limit}개의 로그 이벤트를 가져옵니다. 반환된 데이터에 타임스탬프, 로그 레벨, 메시지, 서비스 이름 및 스택 트레이스가 포함되도록 합니다.  Datadog 로그 검색 API 요청을 아래와 같이 구성합니다.  조회 옵션(search_option) 은 {seach_option} 이고,  여기에 맞게 Tool 을 호출합니다. 데이터 0건 시 임의 생성 금지 및 ""조회 결과 없음"" 을 분명히 명시합니다.","타임스탬프, 심각도 레벨, 서비스 이름, 로그 메시지 및 관련 오류 세부 정보나 스택 트레이스가 포함된 로그 항목을 비롯하여, JSON 또는 구조화된 텍스트 형식으로 Datadog에서 검색된 원본 로그 데이터입니다.",,datadog_log_retrieval_specialist,Datadog 로그 검색 전문가,"{time_range} 시간 범위 동안 {datadog_query} 쿼리를 기반으로 API를 사용하여 Datadog에서 애플리케이션 로그를 가져오고, 분석을 위해 원본(raw) 로그 데이터를 반환합니다. Custom_tool 을 호출할때는 {seach_option} 에 따라서 다르게 호출되도록 해당 파라미터를 전달합니다.","당신은 클라우드 로깅 인프라 및 Datadog API 전문가입니다. Datadog 로그 파이프라인을 쿼리하고, 적절한 인증을 통해 API 요청을 구성하며, 후속 처리를 위해 구조화된 로그 데이터를 추출하는 데 깊은 경험을 가지고 있습니다. Datadog에 인증하기 위해 DD_API_KEY, DD_APP_KEY 및 DD_SITE 환경 변수를 사용합니다.",DatadogLogsSearch,
+analyze_application_logs,fetch_datadog_logs,"Datadog에서 가져온 원본 로그 데이터를 분석합니다. 분석에는 다음 내용이 포함되어야 합니다:  이전에 추출된 정보 이외에 임의적인 데이터 추론 및 분석을 하면 안됩니다.
     - 심각한 오류 및 예외 식별 및 분류
     - 경고 및 이상 징후 강조
     - 반복되는 오류 패턴 또는 급증 감지
