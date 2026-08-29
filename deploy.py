@@ -5,7 +5,79 @@ import argparse
 import tempfile
 import requests
 from dotenv import load_dotenv
+import json
+from pathlib import Path
+import msal
+
 load_dotenv()
+
+# MS Entra ID (M365) Application Configuration
+# These can be overridden by environment variables
+CLIENT_ID = os.getenv("AZURE_CLIENT_ID", "your-azure-app-client-id")
+TENANT_ID = os.getenv("AZURE_TENANT_ID", "common")  # common or specific tenant ID
+
+# Cache token locally to avoid frequent interactive logins
+CACHE_DIR = Path.home() / ".crewai"
+CACHE_PATH = CACHE_DIR / "token_cache.bin"
+
+def load_token_cache():
+    cache = msal.SerializableTokenCache()
+    if CACHE_PATH.exists():
+        try:
+            with open(CACHE_PATH, "r") as f:
+                cache.deserialize(f.read())
+        except Exception as e:
+            print(f"[Warning] Failed to load token cache: {e}")
+    return cache
+
+def save_token_cache(cache):
+    CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    try:
+        with open(CACHE_PATH, "w") as f:
+            f.write(cache.serialize())
+    except Exception as e:
+        print(f"[Warning] Failed to save token cache: {e}")
+
+def get_auth_token():
+    cache = load_token_cache()
+    # Scopes: 'openid', 'profile', 'email' are standard OIDC scopes to get ID Token
+    scopes = ["openid", "profile", "email"]
+    
+    authority = f"https://login.microsoftonline.com/{TENANT_ID}"
+    app = msal.PublicClientApplication(
+        CLIENT_ID,
+        authority=authority,
+        token_cache=cache
+    )
+    
+    # Try to get token from cache (silent login)
+    accounts = app.get_accounts()
+    if accounts:
+        # Acquire token silently
+        result = app.acquire_token_silent(scopes, account=accounts[0])
+        if result and "id_token" in result:
+            save_token_cache(cache)
+            return result["id_token"]
+            
+    # If silent login fails, initiate Device Code Flow
+    print("M365 (Microsoft Entra ID) Authentication Required.")
+    flow = app.initiate_device_flow(scopes=scopes)
+    if "user_code" not in flow:
+        print("[Error] Failed to initiate Device Code Flow.")
+        print(f"Details: {json.dumps(flow, indent=2)}")
+        sys.exit(1)
+        
+    print(f"\n{flow['message']}\n")
+    
+    # Wait / poll for token
+    result = app.acquire_token_by_device_flow(flow)
+    if "id_token" in result:
+        save_token_cache(cache)
+        print("\nAuthentication Successful!\n")
+        return result["id_token"]
+    else:
+        print(f"\n[Error] Authentication failed: {result.get('error_description', result.get('error'))}")
+        sys.exit(1)
 
 def zip_directory(source_dir, crew_name, output_zip_path):
     # 압축 제외 디렉토리 정의 (가상환경, Git, 의존성, 빌드 산출물 등)
@@ -25,9 +97,9 @@ def zip_directory(source_dir, crew_name, output_zip_path):
 
 def main():
     default_url = os.environ.get("CREWAI_AMP_URL")
-    print(f'default_url = {default_url}')
+    #print(f'default_url = {default_url}')
     default_key = os.environ.get("CREWAI_AMP_KEY")
-    print(f'default_key = {default_key}')
+    #print(f'default_key = {default_key}')
 
     parser = argparse.ArgumentParser(description="Deploy CrewAI Application to Private AMP")
     parser.add_argument("crew_name", help="크루 이름 (예: datadog_monitoring)")
@@ -41,12 +113,19 @@ def main():
         sys.exit(1)
     
     crew_name = parsed_args.crew_name
-
     source_dir = os.path.abspath(f"./generated_crews/{crew_name}")
     if not os.path.isdir(source_dir):
         print(f"Error: Directory '{source_dir}' does not exist.")
         sys.exit(1)
-        
+
+    # Authenticate
+    # try:
+    #     id_token = get_auth_token()
+    #     default_key = id_token
+    # except Exception as e:
+    #     print(f"[Error] Authentication process failed: {e}")
+    #     sys.exit(1)
+
     print(f"🚀 Packaging crew '{crew_name}' from {source_dir}...")
 
     # 임시 ZIP 파일 생성
