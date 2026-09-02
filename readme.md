@@ -47,6 +47,7 @@ uv sync  # 해당 폴더에 .venv 자동 생성
 # 필요시 로컬 가상환경에 패키지 추가
 uv add "crewai[bedrock]"
 uv add "crewai[google-genai]"
+uv add "crewai-tools[mcp]"
 uv add agentops # 모니터링 AgentOps 사용시
 ```
 

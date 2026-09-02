@@ -1,6 +1,6 @@
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
-from .tools.custom_tool import SendOutLookMail, DatadogLogsSearch
+from .tools.custom_tool import DatadogLogsSearch, SendOutLookMail
 
 # devx api 호출
 from .devx_llm_wrapper import llm
@@ -12,11 +12,31 @@ class DatadogMonitoringV3():
     agents_config = 'config/agents.yaml'
     tasks_config = 'config/tasks.yaml'
 
+    def __init__(self, mcp_tools=None):
+        self.mcp_tools = mcp_tools or []
+
+    def _get_mcp_tool_by_name(self, name: str):
+        for tool in self.mcp_tools:
+            if tool.name == name:
+                return tool
+        return None
+
+    def _get_mcp_tools_by_names(self, names: list[str]):
+        res = []
+        for name in names:
+            tool = self._get_mcp_tool_by_name(name)
+            if tool:
+                res.append(tool)
+        return res
+
+
     @agent
     def datadog_log_retrieval_specialist(self) -> Agent:
+        mcp_tools = self._get_mcp_tools_by_names(["search_datadog_apm", "search_datadog_logs"])
+        tools = mcp_tools if mcp_tools else [DatadogLogsSearch()]    
         return Agent(
             config=self.agents_config['datadog_log_retrieval_specialist'],
-            tools=[DatadogLogsSearch()],
+            tools=tools,
             verbose=True,
             reasoning=False,
             max_reasoning_attempts=None,
@@ -30,6 +50,7 @@ class DatadogMonitoringV3():
     
     @agent
     def application_error_analysis_expert(self) -> Agent:
+    
         return Agent(
             config=self.agents_config['application_error_analysis_expert'],
             verbose=True,
@@ -45,6 +66,7 @@ class DatadogMonitoringV3():
     
     @agent
     def technical_report_writer(self) -> Agent:
+    
         return Agent(
             config=self.agents_config['technical_report_writer'],
             verbose=True,
@@ -60,9 +82,11 @@ class DatadogMonitoringV3():
     
     @agent
     def notification_dispatcher(self) -> Agent:
+        mcp_tools = self._get_mcp_tools_by_names(["send_outlook_mail"])
+        tools = mcp_tools if mcp_tools else [SendOutLookMail()]    
         return Agent(
             config=self.agents_config['notification_dispatcher'],
-            tools=[SendOutLookMail()],
+            tools=tools,
             verbose=True,
             reasoning=False,
             max_reasoning_attempts=None,
